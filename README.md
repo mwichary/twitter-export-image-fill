@@ -16,6 +16,9 @@ This script:
 
 Note: You can interrupt the script at any time and run it again – it should start where it left off.
 
+<img width="1154" src="https://cloud.githubusercontent.com/assets/2061609/21486338/edb3daf4-cb67-11e6-88ca-928b1b017b10.png">
+
+
 ### Details
 
 - The script downloads the images in highest quality.
