@@ -8,7 +8,7 @@ This script:
 
 ### Instructions
 
-1. Request your Twitter archive from https://twitter.com/settings/account.
+1. Request your Twitter archive from the bottom of https://twitter.com/settings/account.
 2. Wait for the email.
 3. Download the archive from the email.
 4. Unpack it somewhere.
