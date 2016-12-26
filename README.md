@@ -12,7 +12,7 @@ This script:
 2. Wait for the email.
 3. Download the archive from the email.
 4. Unpack it somewhere.
-5. Go to the root directory of that archive and run twitter-export-image-fill.py there.
+5. Go to the root directory of that archive and run `twitter-export-image-fill.py` there.
 
 Note: You can interrupt the script at any time and run it again – it should start where it left off.
 
