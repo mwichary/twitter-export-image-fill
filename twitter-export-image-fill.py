@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
 '''
-Twitter export image fill
+Twitter export image fill 1.01
 by Marcin Wichary (aresluna.org)
+
+Site: https://github.com/mwichary/twitter-export-image-fill
 
 This is free and unencumbered software released into the public domain.
 
@@ -14,6 +16,7 @@ means.
 For more information, please refer to <http://unlicense.org/>
 '''
 
+import argparse
 import json
 import os
 import re
@@ -24,9 +27,34 @@ from shutil import copyfile
 
 # Introduce yourself
 
-print "Twitter export image fill"
+print "Twitter export image fill 1.01"
 print "by Marcin Wichary (aresluna.org)"
+print "use --help to see options"
 print
+
+# Process arguments
+
+parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
+parser.add_argument('--include-retweets', action='store_true',
+    help = 'download images of retweets in addition to your own tweets')
+parser.add_argument('--continue-from', dest='EARLIER_ARCHIVE_PATH',
+    help = 'use images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
+args = parser.parse_args()
+
+# Check whether the earlier archive actually exists
+# (This is important because failure would mean quietly downloading all the files again)
+
+if args.EARLIER_ARCHIVE_PATH:
+  earlier_archive_path = args.EARLIER_ARCHIVE_PATH
+  earlier_archive_path = earlier_archive_path.rstrip('/') + '/'
+  try:
+    os.stat(earlier_archive_path + '/data/js/tweet_index.js')
+  except:
+    print "Could not find the earlier archive!"
+    print "Make sure you're pointing at the directory that contains the index.html file."
+    sys.exit()
+
+# Prepare variables
 
 image_count_global = 0
 
@@ -45,7 +73,7 @@ except:
   print
   sys.exit()
 
-print "%i months to process..." % (len(index))
+print "To process: %i months worth of tweets..." % (len(index))
 print "(You can cancel any time. Next time you run, the script should resume at the last point.)"
 print
 
@@ -88,8 +116,10 @@ for date in index:
     for tweet in data:
       tweet_count = tweet_count + 1
 
+      retweeted = 'retweeted_status' in tweet.keys()
+
       # Don't save images from retweets
-      if 'retweeted_status' in tweet.keys():
+      if (not args.include_retweets) and retweeted:
         continue
 
       if tweet['entities']['media']:
@@ -122,29 +152,46 @@ for date in index:
           # Download the original/best image size, rather than the default one
           better_url = url + ':orig'
 
-          local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s.%s' %\
-              (year_str, month_str, date, tweet['id'], tweet_image_count, extension)
+          local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s.%s' %\
+              (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
+               tweet_image_count, extension)
 
-          sys.stdout.write("\r  [%i/%i] Downloading %s..." % (tweet_count, tweet_length, url))
+          can_be_copied = False
+          downloaded = False
+          download_tries = 3
+
+          # If using an earlier archive as a starting point, try to find the desired
+          # image file there first, and copy it if present
+          if args.EARLIER_ARCHIVE_PATH:
+            try:
+              os.stat(earlier_archive_path + local_filename)
+            except:
+              pass
+            else:
+              can_be_copied = True
+
+          sys.stdout.write("\r  [%i/%i] %s %s..." %
+              (tweet_count, tweet_length, "Copying" if can_be_copied else "Downloading", url))
           sys.stdout.write("\033[K") # Clear the end of the line
           sys.stdout.flush()
 
-          download_tries = 3
-          downloaded = False
-          while not downloaded:
-            # Download the file!
-            try:
-              urllib.urlretrieve(better_url, local_filename)
-            except:
-              download_tries = download_tries - 1
-              if download_tries == 0:
-                print
-                print "Failed to download %s after 3 tries." % better_url
-                print "Please try again later?"
-                sys.exit()
-              time.sleep(5) # Wait 5 seconds before retrying
-            else:
-              downloaded = True
+          if can_be_copied:
+            copyfile(earlier_archive_path + local_filename, local_filename)
+          else:
+            while not downloaded:
+              # Actually download the file!
+              try:
+                urllib.urlretrieve(better_url, local_filename)
+              except:
+                download_tries = download_tries - 1
+                if download_tries == 0:
+                  print
+                  print "Failed to download %s after 3 tries." % better_url
+                  print "Please try again later?"
+                  sys.exit()
+                time.sleep(5) # Wait 5 seconds before retrying
+              else:
+                downloaded = True
 
           # Rewrite the original JSON file so that the archive's index.html
           # will now point to local files... and also so that the script can
