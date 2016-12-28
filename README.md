@@ -45,7 +45,7 @@ Not sure. I wrote/tested it on Mac OS only. If you run it on Windows (successful
 
 **How about Linux?**
 
-Some reported it worked for them properly on Ubuntu.
+Some reported it worked for them properly on Ubuntu and FreeBSD.
 
 **Does this download videos in addition to images?**
 
@@ -58,6 +58,9 @@ This script is in public domain. Run free.
 
 
 ### Version history
+
+**1.02(Dec 2016)** 
+- Fix the first line to allow it to run on more systems
 
 **1.01 (Dec 2016)** 
 - Added an option to start from an earlier archive 
