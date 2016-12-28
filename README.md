@@ -59,7 +59,7 @@ This script is in public domain. Run free.
 
 ### Version history
 
-**1.02(Dec 2016)** 
+**1.02 (Dec 2016)** 
 - Fix the first line to allow it to run on more systems
 
 **1.01 (Dec 2016)** 
