@@ -45,11 +45,11 @@ Not sure. I wrote/tested it on Mac OS only. If you run it on Windows (successful
 
 **How about Linux?**
 
-Some reported it worked for them properly on Ubuntu and FreeBSD.
+Some reported it worked for them properly on Ubuntu, FreeBSD, and Debian.
 
 **Does this download videos in addition to images?**
 
-Not sure. Probably not. Let me know if you know!
+Not sure. Probably not. Let me know if you know! (Someone says <a href='https://rg3.github.io/youtube-dl'>youtube-dl</a> might be helpful.)
 
 
 ### License
