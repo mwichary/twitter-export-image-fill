@@ -43,6 +43,10 @@ Use an earlier archive to get images from if possible, instead of downloading (u
 
 Not sure. I wrote/tested it on Mac OS only. If you run it on Windows (successfully or not), please let me know.
 
+**How about Linux?**
+
+Some reported it worked for them properly on Ubuntu.
+
 **Does this download videos in addition to images?**
 
 Not sure. Probably not. Let me know if you know!
