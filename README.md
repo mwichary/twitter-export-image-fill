@@ -59,13 +59,13 @@ This script is in public domain. Run free.
 
 ### Version history
 
-**1.02 (Dec 2016)** 
+**1.02 (27 Dec 2016)** 
 - Fix the first line to allow it to run on more systems
 
-**1.01 (Dec 2016)** 
+**1.01 (27 Dec 2016)** 
 - Added an option to start from an earlier archive 
 - Added an option to include images in retweets
 - Small UI fixes
 
-**1.00 (Dec 2016)**
+**1.00 (26 Dec 2016)**
 - Initial release
