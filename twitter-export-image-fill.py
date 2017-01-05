@@ -16,6 +16,9 @@ means.
 For more information, please refer to <http://unlicense.org/>
 '''
 
+# Imports
+# ---------------------------------
+
 import argparse
 import json
 import os
@@ -33,7 +36,7 @@ else:
 # Functions
 # ---------------------------------
 
-# Downloads an avatar for a tweet.
+# Downloads an avatar image for a tweet.
 # @param user User stanza of a tweet or retweet
 def download_avatar(user):
   # _orig existing means we already processed this user
@@ -42,13 +45,12 @@ def download_avatar(user):
 
   avatar_url = user['profile_image_url_https']
   extension = os.path.splitext(avatar_url)[1]
-  screen_name = user['screen_name']
-  local_filename = "img/avatars/%s%s" % (screen_name, extension)
+  local_filename = "img/avatars/%s%s" % (user['screen_name'], extension)
 
   # File existing means we already downloaded this avatar
   if not os.path.isfile(local_filename):
     urlretrieve(avatar_url, local_filename)
-  user['profile_image_url_https_orig'] = avatar_url
+  user['profile_image_url_https_orig'] = user['profile_image_url_https']
   user['profile_image_url_https'] = local_filename
 
 
@@ -85,11 +87,9 @@ if args.EARLIER_ARCHIVE_PATH:
     print("Make sure you're pointing at the directory that contains the index.html file.")
     sys.exit()
 
-# Prepare variables
+# Prepare variables etc.
 
 image_count_global = 0
-
-# Make sure we have a directory for avatar images
 
 if not os.path.isdir("img/avatars"):
   os.mkdir("img/avatars")
