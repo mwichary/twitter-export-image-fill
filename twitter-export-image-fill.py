@@ -46,6 +46,7 @@ args = parser.parse_args()
 
 if args.EARLIER_ARCHIVE_PATH:
   earlier_archive_path = args.EARLIER_ARCHIVE_PATH
+  # Normalizes the slash at the end so it supports both including and not including it
   earlier_archive_path = earlier_archive_path.rstrip('/') + '/'
   try:
     os.stat(earlier_archive_path + '/data/js/tweet_index.js')
