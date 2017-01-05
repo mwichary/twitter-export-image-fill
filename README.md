@@ -25,7 +25,7 @@ Note: You can interrupt the script at any time and run it again – it should s
 `--include-videos PATH_TO_YOUTUBE_DL`
 
 Download videos from tweets… sort of. This option makes the script output a shell file that
-can be ran later to download all the videos using
+can be run later to download all the videos using
 <a href='https://rg3.github.io/youtube-dl/'>youtube-dl</a>. You have to
 <a href='https://rg3.github.io/youtube-dl/download.html'>download/install</a>
 youtube-dl manually and then provide a path to it, e.g.
