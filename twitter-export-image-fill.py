@@ -22,15 +22,20 @@ import os
 import re
 import sys
 import time
-import urllib
 from shutil import copyfile
+
+# The location of urlretrieve changed modules in Python 3
+if (sys.version_info > (3, 0)):
+    from urllib.request import urlretrieve
+else:
+    from urllib import urlretrieve
 
 # Introduce yourself
 
-print "Twitter export image fill 1.03"
-print "by Marcin Wichary (aresluna.org)"
-print "use --help to see options"
-print
+print("Twitter export image fill 1.03")
+print("by Marcin Wichary (aresluna.org)")
+print("use --help to see options")
+print("")
 
 # Process arguments
 
@@ -51,8 +56,8 @@ if args.EARLIER_ARCHIVE_PATH:
   try:
     os.stat(earlier_archive_path + '/data/js/tweet_index.js')
   except:
-    print "Could not find the earlier archive!"
-    print "Make sure you're pointing at the directory that contains the index.html file."
+    print("Could not find the earlier archive!")
+    print("Make sure you're pointing at the directory that contains the index.html file.")
     sys.exit()
 
 # Prepare variables
@@ -68,15 +73,15 @@ try:
     index_str = re.sub(r'var tweet_index =', '', index_str)
     index = json.loads(index_str)
 except:
-  print "Could not open the data file!"
-  print "Please run this script from your tweet archive directory"
-  print "(the one with index.html file)."
-  print
+  print("Could not open the data file!")
+  print("Please run this script from your tweet archive directory")
+  print("(the one with index.html file).")
+  print("")
   sys.exit()
 
-print "To process: %i months worth of tweets..." % (len(index))
-print "(You can cancel any time. Next time you run, the script should resume at the last point.)"
-print
+print("To process: %i months worth of tweets..." % (len(index)))
+print("(You can cancel any time. Next time you run, the script should resume at the last point.)")
+print("")
 
 
 # Loop 1: Go through all the months
@@ -112,7 +117,7 @@ for date in index:
     tweet_count = 0
     directory_name = 'data/js/tweets/%s_%s_media' % (year_str, month_str)
 
-    print "%s/%s: %i tweets to process..." % (year_str, month_str, tweet_length)
+    print("%s/%s: %i tweets to process..." % (year_str, month_str, tweet_length))
 
     for tweet in data:
       tweet_count = tweet_count + 1
@@ -182,13 +187,13 @@ for date in index:
             while not downloaded:
               # Actually download the file!
               try:
-                urllib.urlretrieve(better_url, local_filename)
+                urlretrieve(better_url, local_filename)
               except:
                 download_tries = download_tries - 1
                 if download_tries == 0:
-                  print
-                  print "Failed to download %s after 3 tries." % better_url
-                  print "Please try again later?"
+                  print("")
+                  print("Failed to download %s after 3 tries." % better_url)
+                  print("Please try again later?")
                   sys.exit()
                 time.sleep(5) # Wait 5 seconds before retrying
               else:
@@ -219,16 +224,16 @@ for date in index:
     sys.stdout.write("\r%s/%s: %i tweets processed; %i images downloaded." % (year_str, month_str, tweet_length, image_count))
     sys.stdout.write("\033[K") # Clear the end of the line
     sys.stdout.flush()
-    print
+    print("")
 
   # Nicer support for Ctrl-C
   except KeyboardInterrupt:
-    print
-    print "Interrupted! Come back any time."
+    print("")
+    print("Interrupted! Come back any time.")
     sys.exit()
 
 # End loop 1 (all the months)
-print
-print "Done!"
-print "%i images downloaded in total." % image_count_global
-print
+print("")
+print("Done!")
+print("%i images downloaded in total." % image_count_global)
+print("")

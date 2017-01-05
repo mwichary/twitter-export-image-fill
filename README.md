@@ -22,7 +22,7 @@ Note: You can interrupt the script at any time and run it again – it should s
 
 ### Options
 
-`--include-retweets` 
+`--include-retweets`
 
 Download images from retweets (by default, the script only downloads images from your own tweets)
 
@@ -45,11 +45,11 @@ Not sure. I wrote/tested it on Mac OS only. If you run it on Windows (successful
 
 **How about Linux?**
 
-Some reported it worked for them properly on Ubuntu.
+Some reported it worked for them properly on Ubuntu, FreeBSD, and Debian.
 
 **Does this download videos in addition to images?**
 
-Not sure. Probably not. Let me know if you know!
+Not sure. Probably not. Let me know if you know! (Someone says <a href='https://rg3.github.io/youtube-dl'>youtube-dl</a> might be helpful.)
 
 
 ### License
@@ -59,10 +59,16 @@ This script is in public domain. Run free.
 
 ### Version history
 
-**1.01 (Dec 2016)** 
-- Added an option to start from an earlier archive 
+**1.03 (5 Jan 2017)**
+- Should work on Python 2 and 3 (thanks to @glasnt)
+
+**1.02 (27 Dec 2016)**
+- Fix the first line to allow it to run on more systems
+
+**1.01 (27 Dec 2016)**
+- Added an option to start from an earlier archive
 - Added an option to include images in retweets
 - Small UI fixes
 
-**1.00 (Dec 2016)**
+**1.00 (26 Dec 2016)**
 - Initial release
