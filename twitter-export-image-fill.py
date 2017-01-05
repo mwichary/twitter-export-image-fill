@@ -143,10 +143,6 @@ for date in index:
     month_str = '%02d' % date['month']
     data_filename = 'data/js/tweets/%s_%s.js' % (year_str, month_str)
 
-    # DEBUG
-    if year_str != '2014' or month_str != '04':
-      continue
-
     # Make a copy of the original JS file, just in case (only if it doesn't exist before)
     backup_filename = 'data/js/tweets/%s_%s_original.js' % (year_str, month_str)
     if not os.path.isfile(backup_filename):
