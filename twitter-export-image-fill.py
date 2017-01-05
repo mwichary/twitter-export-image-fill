@@ -47,9 +47,16 @@ def download_avatar(user):
   extension = os.path.splitext(avatar_url)[1]
   local_filename = "img/avatars/%s%s" % (user['screen_name'], extension)
 
-  # File existing means we already downloaded this avatar
   if not os.path.isfile(local_filename):
-    urlretrieve(avatar_url, local_filename)
+    # If using an earlier archive as a starting point, try to see if the
+    # avatar image is there and can be copied
+    if args.EARLIER_ARCHIVE_PATH and os.path.isfile(earlier_archive_path + local_filename):
+      copyfile(earlier_archive_path + local_filename, local_filename)
+
+    # Otherwise download it
+    else:
+      urlretrieve(avatar_url, local_filename)
+
   user['profile_image_url_https_orig'] = user['profile_image_url_https']
   user['profile_image_url_https'] = local_filename
 

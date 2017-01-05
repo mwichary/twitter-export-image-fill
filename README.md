@@ -60,7 +60,8 @@ This script is in public domain. Run free.
 ### Version history
 
 **1.03 (5 Jan 2017)**
-- Should work on Python 2 and 3 (thanks to @glasnt)
+- Now downloads avatar images, too (code submitted by @edsu)
+- Should work on Python 2 and 3 (code submitted by @glasnt)
 
 **1.02 (27 Dec 2016)**
 - Fix the first line to allow it to run on more systems
