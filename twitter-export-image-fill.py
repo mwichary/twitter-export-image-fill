@@ -36,12 +36,24 @@ else:
 # Functions
 # ---------------------------------
 
+# Re-save the JSON data back to the original file.
+def resave_data(data, data_filename, first_data_line, year_str, month_str):
+  # Writing to a separate file so that we can only copy over the
+  # main file when done
+  data_filename_temp = 'data/js/tweets/%s_%s.js.tmp' % (year_str, month_str)
+  with open(data_filename_temp, 'w') as f:
+    f.write(first_data_line)
+    json.dump(data, f, indent=2)
+  os.remove(data_filename)
+  os.rename(data_filename_temp, data_filename)
+
+
 # Downloads an avatar image for a tweet.
-# @param user User stanza of a tweet or retweet
+# @return Whether data was rewritten
 def download_avatar(user):
   # _orig existing means we already processed this user
   if 'profile_image_url_https_orig' in user:
-    return
+    return False
 
   avatar_url = user['profile_image_url_https']
   extension = os.path.splitext(avatar_url)[1]
@@ -59,6 +71,7 @@ def download_avatar(user):
 
   user['profile_image_url_https_orig'] = user['profile_image_url_https']
   user['profile_image_url_https'] = local_filename
+  return True
 
 
 # Main entry point
@@ -161,9 +174,13 @@ for date in index:
       # Before downloading any images, download an avatar for tweet's author
       # (same for retweet if asked)
       if not args.skip_avatars:
-        download_avatar(tweet['user'])
+        data_changed = download_avatar(tweet['user'])
         if args.include_retweets and retweeted:
-          download_avatar(tweet['retweeted_status']['user'])
+          data_changed = data_changed or download_avatar(tweet['retweeted_status']['user'])
+
+        # Re-save the JSON file if we grabbed any avatars
+        if data_changed:
+          resave_data(data, data_filename, first_data_line, year_str, month_str)
 
       # Don't save images from retweets unless asked
       if (not args.include_retweets) and retweeted:
@@ -233,20 +250,14 @@ for date in index:
               else:
                 downloaded = True
 
-          # Rewrite the original JSON file so that the archive's index.html
-          # will now point to local files... and also so that the script can
-          # continue from last point
+          # Change the URL so that the archive's index.html will now point to the
+          # just-download local file...
           media['media_url_orig'] = media['media_url']
           media['media_url'] = local_filename
 
-          # Writing to a separate file so that we can only copy over the
-          # main file when done
-          data_filename_temp = 'data/js/tweets/%s_%s.js.tmp' % (year_str, month_str)
-          with open(data_filename_temp, 'w') as f:
-            f.write(first_data_line)
-            json.dump(data, f, indent=2)
-          os.remove(data_filename)
-          os.rename(data_filename_temp, data_filename)
+          # Re-save the original JSON file every time, so that the script can continue
+          # from this point
+          resave_data(data, data_filename, first_data_line, year_str, month_str)
 
           tweet_image_count = tweet_image_count + 1
           image_count = image_count + 1
