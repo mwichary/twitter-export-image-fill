@@ -23,12 +23,35 @@ import re
 import sys
 import time
 from shutil import copyfile
-
 # The location of urlretrieve changed modules in Python 3
 if (sys.version_info > (3, 0)):
     from urllib.request import urlretrieve
 else:
     from urllib import urlretrieve
+
+
+# Functions
+# ---------------------------------
+
+# Downloads an avatar for a tweet.
+# @param user User stanza of a tweet or retweet
+def download_avatar(user):
+  # _orig existing means we already processed this user
+  if 'profile_image_url_https_orig' in user:
+    return
+  avatar_url = user['profile_image_url_https']
+  extension = os.path.splitext(avatar_url)[1]
+  screen_name = user['screen_name']
+  local_filename = "img/avatars/%s%s" % (screen_name, extension)
+  # file existing means we already downloaded this avatar
+  if not os.path.isfile(local_filename):
+    urllib.urlretrieve(avatar_url, local_filename)
+  user['profile_image_url_https_orig'] = avatar_url
+  user['profile_image_url_https'] = local_filename
+
+
+# Main entry point
+# ---------------------------------
 
 # Introduce yourself
 
@@ -53,9 +76,7 @@ if args.EARLIER_ARCHIVE_PATH:
   earlier_archive_path = args.EARLIER_ARCHIVE_PATH
   # Normalizes the slash at the end so it supports both including and not including it
   earlier_archive_path = earlier_archive_path.rstrip('/') + '/'
-  try:
-    os.stat(earlier_archive_path + '/data/js/tweet_index.js')
-  except:
+  if not os.path.isfile(earlier_archive_path + '/data/js/tweet_index.js'):
     print("Could not find the earlier archive!")
     print("Make sure you're pointing at the directory that contains the index.html file.")
     sys.exit()
@@ -63,6 +84,11 @@ if args.EARLIER_ARCHIVE_PATH:
 # Prepare variables
 
 image_count_global = 0
+
+# Make sure we have a directory for avatar images
+
+if not os.path.isdir("img/avatars"):
+  os.mkdir("img/avatars")
 
 # Process the index file to see what needs to be done
 
@@ -95,9 +121,7 @@ for date in index:
 
     # Make a copy of the original JS file, just in case (only if it doesn't exist before)
     backup_filename = 'data/js/tweets/%s_%s_original.js' % (year_str, month_str)
-    try:
-      os.stat(backup_filename)
-    except:
+    if not os.path.isfile(backup_filename):
       copyfile(data_filename, backup_filename)
 
 
@@ -124,6 +148,11 @@ for date in index:
 
       retweeted = 'retweeted_status' in tweet.keys()
 
+      # Download avatar for tweet and retweet
+      download_avatar(tweet['user'])
+      if retweeted:
+        download_avatar(tweet['retweeted_status']['user'])
+
       # Don't save images from retweets
       if (not args.include_retweets) and retweeted:
         continue
@@ -146,19 +175,17 @@ for date in index:
             continue
 
           url = media['media_url_https']
-          extension = re.match(r'(.*)\.([^.]*)$', url).group(2)
+          extension = os.path.splitext(url)[1]
 
           # Only make the directory when we're ready to write the first file;
           # this will avoid empty directories
-          try:
-            os.stat(directory_name)
-          except:
+          if not os.path.isdir(directory_name):
             os.mkdir(directory_name)
 
           # Download the original/best image size, rather than the default one
           better_url = url + ':orig'
 
-          local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s.%s' %\
+          local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s%s' %\
               (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
                tweet_image_count, extension)
 
@@ -169,11 +196,7 @@ for date in index:
           # If using an earlier archive as a starting point, try to find the desired
           # image file there first, and copy it if present
           if args.EARLIER_ARCHIVE_PATH:
-            try:
-              os.stat(earlier_archive_path + local_filename)
-            except:
-              pass
-            else:
+            if not os.path.isfile(earlier_archive_path + local_filename):
               can_be_copied = True
 
           sys.stdout.write("\r  [%i/%i] %s %s..." %
