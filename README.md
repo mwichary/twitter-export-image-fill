@@ -22,6 +22,15 @@ Note: You can interrupt the script at any time and run it again – it should s
 
 ### Options
 
+`--include-videos PATH_TO_YOUTUBE_DL`
+
+Download videos from tweets… sort of. This option makes the script output a shell file that
+can be ran later to download all the videos using
+<a href='https://rg3.github.io/youtube-dl/'>youtube-dl</a>. You have to
+<a href='https://rg3.github.io/youtube-dl/download.html'>download/install</a>
+youtube-dl manually and then provide a path to it, e.g.
+`--include-videos /usr/local/Cellar/youtube-dl/2017.01.05/bin/youtube-dl`
+
 `--include-retweets`
 
 Download images from retweets (by default, the script only downloads images from your own tweets)
@@ -53,7 +62,9 @@ Some reported it worked for them properly on Ubuntu, FreeBSD, and Debian.
 
 **Does this download videos in addition to images?**
 
-Not sure. Probably not. Let me know if you know! (Someone says <a href='https://rg3.github.io/youtube-dl'>youtube-dl</a> might be helpful.)
+Not really, but you can use the experimental `include-videos` parameter to download them
+later easily using youtube-dl. Note that those videos won’t be playable from the archive’s
+local webpage, but they will be downloaded locally into your file system.
 
 
 ### License
@@ -64,11 +75,12 @@ This script is in public domain. Run free.
 ### Version history
 
 **1.03 (5 Jan 2017)**
-- Now downloads avatar images, too (code submitted by @edsu)
+- Downloads videos through youtube-dl “integration”
+- Downloads avatar images, too (code submitted by @edsu)
 - Should work on Python 2 and 3 (code submitted by @glasnt)
 
 **1.02 (27 Dec 2016)**
-- Fix the first line to allow it to run on more systems
+- Fixed the first line to allow it to run on more systems
 
 **1.01 (27 Dec 2016)**
 - Added an option to start from an earlier archive

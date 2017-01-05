@@ -326,7 +326,7 @@ if video_count_global:
     print("./download_videos.sh")
   else:
     print("%i videos have NOT been downloaded." % video_count_global)
-    print("If you want, use the experimental --include-videos to download videos.")
-    print("More info: https://github.com/mwichary/twitter-export-image-fill")
+    print("If you want, use the experimental include-videos option to download videos.")
+    print("For more info, use --help, or look at https://github.com/mwichary/twitter-export-image-fill")
 
   print("")
