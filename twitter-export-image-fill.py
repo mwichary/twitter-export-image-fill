@@ -91,7 +91,7 @@ parser = argparse.ArgumentParser(description = 'Downloads all the images to your
 parser.add_argument('--include-retweets', action='store_true',
     help = 'download images from retweets in addition to your own tweets')
 parser.add_argument('--include-videos', dest='PATH_TO_YOUTUBE_DL',
-    help = 'prepare a list of videos to download using youtube_dl (experimental!)')
+    help = 'output a list of videos to download using youtube_dl (experimental!)')
 parser.add_argument('--skip-avatars', action='store_true',
     help = 'do not download avatar images (faster)')
 parser.add_argument('--continue-from', dest='EARLIER_ARCHIVE_PATH',
@@ -312,6 +312,7 @@ print("")
 # Any videos detected? Tell the user
 if video_count_global:
   if include_videos:
+    # Output the shell file that can be run to download files using youtube-dl
     video_shell_filename = 'download_videos.sh'
     with open(video_shell_filename, 'w') as f:
       for shell_line in video_shell_file_contents:
