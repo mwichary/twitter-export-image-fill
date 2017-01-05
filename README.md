@@ -78,8 +78,8 @@ This script is in public domain. Run free.
 
 **1.03 (5 Jan 2017)**
 - Downloads videos through youtube-dl “integration” (thanks to Nelson Minar and Benjamin Zanin for inspiration)
-- Downloads avatar images, too (code submitted by @edsu)
-- Should work on Python 2 and 3 (code submitted by @glasnt)
+- Downloads avatar images, too (code submitted by <a href='https://github.com/edsu'>@edsu</a>)
+- Should work on Python 2 and 3 (code submitted by <a href='https://github.com/glasnt'>@glasnt</a>)
 
 **1.02 (27 Dec 2016)**
 - Fixed the first line to allow it to run on more systems (thanks to Ariel Millennium Thornton)
