@@ -66,7 +66,9 @@ print("")
 
 parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
 parser.add_argument('--include-retweets', action='store_true',
-    help = 'download images of retweets in addition to your own tweets')
+    help = 'download images from retweets in addition to your own tweets')
+parser.add_argument('--skip-avatars', action='store_true',
+    help = 'do not download avatar images (faster)')
 parser.add_argument('--continue-from', dest='EARLIER_ARCHIVE_PATH',
     help = 'use images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
 args = parser.parse_args()
@@ -149,10 +151,12 @@ for date in index:
       tweet_count = tweet_count + 1
       retweeted = 'retweeted_status' in tweet.keys()
 
-      # Before images, download avatar for tweet (and retweet if asked)
-      download_avatar(tweet['user'])
-      if args.include_retweets and retweeted:
-        download_avatar(tweet['retweeted_status']['user'])
+      # Before downloading any images, download an avatar for tweet's author
+      # (same for retweet if asked)
+      if not args.skip_avatars:
+        download_avatar(tweet['user'])
+        if args.include_retweets and retweeted:
+          download_avatar(tweet['retweeted_status']['user'])
 
       # Don't save images from retweets unless asked
       if (not args.include_retweets) and retweeted:
