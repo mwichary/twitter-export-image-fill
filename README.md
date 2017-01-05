@@ -48,6 +48,8 @@ Use an earlier archive to get images from if possible, instead of downloading (u
 
 - The script downloads the images in highest quality.
 - The original versions of modified JSON files are saved for reference.
+- Images are downloaded into `data/js/tweets/yyyy_mm_media` subdirectories.
+- User avatars are downloaded into `img/avatars` directory.
 
 
 ### FAQ
