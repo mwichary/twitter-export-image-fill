@@ -39,13 +39,15 @@ def download_avatar(user):
   # _orig existing means we already processed this user
   if 'profile_image_url_https_orig' in user:
     return
+
   avatar_url = user['profile_image_url_https']
   extension = os.path.splitext(avatar_url)[1]
   screen_name = user['screen_name']
   local_filename = "img/avatars/%s%s" % (screen_name, extension)
-  # file existing means we already downloaded this avatar
+
+  # File existing means we already downloaded this avatar
   if not os.path.isfile(local_filename):
-    urllib.urlretrieve(avatar_url, local_filename)
+    urlretrieve(avatar_url, local_filename)
   user['profile_image_url_https_orig'] = avatar_url
   user['profile_image_url_https'] = local_filename
 
@@ -56,7 +58,7 @@ def download_avatar(user):
 # Introduce yourself
 
 print("Twitter export image fill 1.03")
-print("by Marcin Wichary (aresluna.org)")
+print("by Marcin Wichary (aresluna.org) and others")
 print("use --help to see options")
 print("")
 
@@ -145,15 +147,14 @@ for date in index:
 
     for tweet in data:
       tweet_count = tweet_count + 1
-
       retweeted = 'retweeted_status' in tweet.keys()
 
-      # Download avatar for tweet and retweet
+      # Before images, download avatar for tweet (and retweet if asked)
       download_avatar(tweet['user'])
-      if retweeted:
+      if args.include_retweets and retweeted:
         download_avatar(tweet['retweeted_status']['user'])
 
-      # Don't save images from retweets
+      # Don't save images from retweets unless asked
       if (not args.include_retweets) and retweeted:
         continue
 
