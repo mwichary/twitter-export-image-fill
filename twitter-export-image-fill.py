@@ -200,9 +200,8 @@ for date in index:
 
           # If using an earlier archive as a starting point, try to find the desired
           # image file there first, and copy it if present
-          if args.EARLIER_ARCHIVE_PATH:
-            if not os.path.isfile(earlier_archive_path + local_filename):
-              can_be_copied = True
+          if args.EARLIER_ARCHIVE_PATH and os.path.isfile(earlier_archive_path + local_filename):
+            can_be_copied = True
 
           sys.stdout.write("\r  [%i/%i] %s %s..." %
               (tweet_count, tweet_length, "Copying" if can_be_copied else "Downloading", url))
