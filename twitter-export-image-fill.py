@@ -143,6 +143,10 @@ for date in index:
     month_str = '%02d' % date['month']
     data_filename = 'data/js/tweets/%s_%s.js' % (year_str, month_str)
 
+    # DEBUG
+    if year_str != '2014' or month_str != '04':
+      continue
+
     # Make a copy of the original JS file, just in case (only if it doesn't exist before)
     backup_filename = 'data/js/tweets/%s_%s_original.js' % (year_str, month_str)
     if not os.path.isfile(backup_filename):
@@ -172,17 +176,19 @@ for date in index:
       retweeted = 'retweeted_status' in tweet.keys()
 
       # Before downloading any images, download an avatar for tweet's author
-      # (same for retweet if asked)
+      # (same for retweet if asked to)
       if not args.skip_avatars:
         data_changed = download_avatar(tweet['user'])
+
+        data_changed_retweet = False
         if args.include_retweets and retweeted:
-          data_changed = data_changed or download_avatar(tweet['retweeted_status']['user'])
+          data_changed_retweet = download_avatar(tweet['retweeted_status']['user'])
 
         # Re-save the JSON file if we grabbed any avatars
-        if data_changed:
+        if data_changed or data_changed_retweet:
           resave_data(data, data_filename, first_data_line, year_str, month_str)
 
-      # Don't save images from retweets unless asked
+      # Don't continue with saving images if a retweet (unless forced to)
       if (not args.include_retweets) and retweeted:
         continue
 
