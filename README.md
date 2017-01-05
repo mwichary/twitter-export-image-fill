@@ -26,6 +26,10 @@ Note: You can interrupt the script at any time and run it again – it should s
 
 Download images from retweets (by default, the script only downloads images from your own tweets)
 
+`--skip-avatars`
+
+Do not download avatars from tweets (by default, user avatars are downloaded alongside tweet images)
+
 `--continue-from EARLIER_ARCHIVE_PATH`
 
 Use an earlier archive to get images from if possible, instead of downloading (useful for incremental backups), e.g. `--continue-from ~/Desktop/tweet-archive`
