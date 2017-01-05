@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-Twitter export image fill 1.02
+Twitter export image fill 1.03
 by Marcin Wichary (aresluna.org)
 
 Site: https://github.com/mwichary/twitter-export-image-fill
@@ -27,7 +27,7 @@ from shutil import copyfile
 
 # Introduce yourself
 
-print "Twitter export image fill 1.02"
+print "Twitter export image fill 1.03"
 print "by Marcin Wichary (aresluna.org)"
 print "use --help to see options"
 print
