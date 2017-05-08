@@ -6,6 +6,8 @@ This script:
 - downloads all the images from your tweets locally
 - rewrites the archive files so that they point to the local images
 
+(I wrote a [similar script for Medium archive](https://github.com/mwichary/medium-export-image-fill).)
+
 
 ### Instructions
 
