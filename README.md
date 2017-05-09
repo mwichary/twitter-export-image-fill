@@ -6,14 +6,15 @@ This script:
 - downloads all the images from your tweets locally
 - rewrites the archive files so that they point to the local images
 
-(I wrote a [similar script for Medium archive](https://github.com/mwichary/medium-export-image-fill).)
+(I wrote a [similar script for a Medium archive](https://github.com/mwichary/medium-export-image-fill).)
 
 
 ### Why you should have a complete archive of your own data
 
 - n+1 backups is better than n backups.
 - Your own backup will make it possible to get to your data if you’re offline, or if Twitter happens to be down.
-- Someone can hack into your account and delete your stories.
+- Someone can hack into your account and delete your tweets.
+- *You* can accidentally delete your tweets or images.
 - Someone at Twitter can make a mistake and delete them, too.
 - Years or decades from now, Twitter might cease to exist.
 
