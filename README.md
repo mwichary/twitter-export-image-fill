@@ -80,6 +80,10 @@ Not really, but you can use the experimental `include-videos` parameter to downl
 later easily using youtube-dl. Note that those videos won’t be playable from the archive’s
 local webpage, but they will be downloaded locally into your file system.
 
+**Some of my images fail to load, even though they open on Twitter**
+
+Image URLs can change if you protect (or unprotect?) your account, and the archive can get out of sync. If that matches your usage, simply redownload a fresh archive.
+
 
 ### License
 
