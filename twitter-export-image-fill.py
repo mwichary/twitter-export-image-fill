@@ -80,7 +80,7 @@ def download_avatar(user):
 
 # Introduce yourself
 
-print("Twitter export image fill 1.03")
+print("Twitter export image fill 1.04")
 print("by Marcin Wichary (aresluna.org) and others")
 print("use --help to see options")
 print("")
@@ -96,6 +96,8 @@ parser.add_argument('--skip-avatars', action='store_true',
     help = 'do not download avatar images (faster)')
 parser.add_argument('--continue-from', dest='EARLIER_ARCHIVE_PATH',
     help = 'use images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
+parser.add_argument('--verbose', action='store_true',
+    help = 'show additional debugging info')
 args = parser.parse_args()
 
 include_videos = not not args.PATH_TO_YOUTUBE_DL
@@ -254,6 +256,9 @@ for date in index:
                   print("")
                   print("Failed to download %s after 3 tries." % better_url)
                   print("Please try again later?")
+                  # Output debugging info if needed
+                  if args.verbose:
+                    print("Debug info: Tweet ID = %s " % tweet['id'])
                   sys.exit()
                 time.sleep(5) # Wait 5 seconds before retrying
               else:
