@@ -68,7 +68,7 @@ Use an earlier archive to get images from if possible, instead of downloading (u
 
 **Does this work on Windows?**
 
-Not sure. I wrote/tested it on Mac OS only. If you run it on Windows (successfully or not), please let me know.
+I wrote/tested it on Mac OS only, but I’ve heard of people having successs running it on Windows.
 
 **How about Linux?**
 
