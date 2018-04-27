@@ -88,6 +88,9 @@ This script is in public domain. Run free.
 
 ### Version history
 
+**1.04 (26 Apr 2018)**
+- Downloads animated GIFs as videos rather than stills (thanks to AlexLady for inspiration)
+
 **1.03 (5 Jan 2017)**
 - Downloads videos through youtube-dl “integration” (thanks to Nelson Minar and Benjamin Zanin for inspiration)
 - Downloads avatar images, too (code submitted by <a href='https://github.com/edsu'>@edsu</a>)

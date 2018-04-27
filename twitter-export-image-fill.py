@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-Twitter export image fill 1.03
+Twitter export image fill 1.04
 by Marcin Wichary (aresluna.org)
 
 Site: https://github.com/mwichary/twitter-export-image-fill
@@ -94,6 +94,8 @@ parser.add_argument('--include-videos', dest='PATH_TO_YOUTUBE_DL',
     help = 'output a list of videos to download using youtube_dl (experimental!)')
 parser.add_argument('--skip-avatars', action='store_true',
     help = 'do not download avatar images (faster)')
+parser.add_argument('--force-download', action='store_true',
+    help = 'force downloading images that were already downloaded')
 parser.add_argument('--continue-from', dest='EARLIER_ARCHIVE_PATH',
     help = 'use images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
 parser.add_argument('--verbose', action='store_true',
@@ -211,8 +213,11 @@ for date in index:
         for media in tweet['entities']['media']:
           # media_url_orig being present means we already processed/downloaded
           # this image or video
-          if 'media_url_orig' in media.keys():
+          if 'media_url_orig' in media.keys() and not args.force_download:
             continue
+
+          if args.force_download and 'media_url_orig' in media.keys():
+            media['media_url'] = media['media_url_orig']
 
           url = media['media_url_https']
           extension = os.path.splitext(url)[1]
@@ -274,7 +279,15 @@ for date in index:
           resave_data(data, data_filename, first_data_line, year_str, month_str)
 
           # Test whether this media is actually a video
-          is_video = '/video/' in media['expanded_url']
+          is_video = False
+          if '/video/' in media['expanded_url']:
+            is_video = True
+            video_download_url = media['expanded_url']
+          elif 'tweet_video_thumb' in media['media_url_orig']:
+            is_video = True
+            id = re.match(r'(.*)tweet_video_thumb/(.*)\.', media['media_url_orig']).group(2)
+            video_download_url = "https://video.twimg.com/tweet_video/%s.mp4" % id
+
           if is_video:
             video_count_global = video_count_global + 1
 
@@ -286,7 +299,7 @@ for date in index:
 
               # ...create a shell line to eventually be output into a shell file
               shell_line = '%s %s --exec \'mv {} %s\'' % \
-                  (args.PATH_TO_YOUTUBE_DL, media['expanded_url'],
+                  (args.PATH_TO_YOUTUBE_DL, video_download_url,
                     local_video_filename.replace(' ', '\ ')) # Don't forget to escape spaces in the filename
               video_shell_file_contents.append(shell_line)
 
