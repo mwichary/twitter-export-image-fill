@@ -68,7 +68,7 @@ Use an earlier archive to get images from if possible, instead of downloading (u
 
 **Does this work on Windows?**
 
-Not sure. I wrote/tested it on Mac OS only. If you run it on Windows (successfully or not), please let me know.
+I wrote/tested it on Mac OS only, but I’ve heard of people having successs running it on Windows.
 
 **How about Linux?**
 
@@ -79,6 +79,10 @@ Some reported it worked for them properly on Ubuntu, FreeBSD, and Debian.
 Not really, but you can use the experimental `include-videos` parameter to download them
 later easily using youtube-dl. Note that those videos won’t be playable from the archive’s
 local webpage, but they will be downloaded locally into your file system.
+
+**Some of my images fail to load, even though they open on Twitter**
+
+Image URLs can change if you protect (or unprotect?) your account, and the archive can get out of sync. If that matches your usage, simply redownload a fresh archive.
 
 
 ### License
