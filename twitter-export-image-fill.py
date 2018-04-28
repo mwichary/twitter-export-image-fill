@@ -34,6 +34,13 @@ else:
     from urllib import urlretrieve
 
 
+def print_intro():
+  print("Twitter export image fill 1.07")
+  print("by Marcin Wichary (aresluna.org) and others")
+  print("use --help to see options")
+  print("")
+
+
 def parse_arguments():
   parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
   parser.add_argument('--include-videos', dest='PATH_TO_YOUTUBE_DL',
@@ -373,12 +380,7 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
 # Main entry point
 # ---------------------------------
 
-# Introduce yourself
-
-print("Twitter export image fill 1.07")
-print("by Marcin Wichary (aresluna.org) and others")
-print("use --help to see options")
-print("")
+print_intro()
 
 # Process arguments, find components
 
