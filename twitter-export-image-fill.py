@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-Twitter export image fill 1.06
+Twitter export image fill 1.07
 by Marcin Wichary (aresluna.org)
 
 Site: https://github.com/mwichary/twitter-export-image-fill
@@ -33,9 +33,45 @@ if (sys.version_info > (3, 0)):
 else:
     from urllib import urlretrieve
 
+# Process arguments
+def parse_arguments():
+  parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
+  parser.add_argument('--include-videos', dest='PATH_TO_YOUTUBE_DL',
+      help = 'use youtube_dl to download videos (and animated GIFs) in addition to images')
+  parser.add_argument('--skip-avatars', action='store_true',
+      help = 'do not download avatar images (faster)')
+  parser.add_argument('--skip-retweets', action='store_true',
+      help = 'do not download images or videos from retweets (faster)')
+  parser.add_argument('--skip-images', action='store_true',
+      help = 'do not download images in general')
+  parser.add_argument('--skip-videos', action='store_true',
+      help = 'do not download videos (and animated GIFs) in general')
+  parser.add_argument('--continue-from', dest='EARLIER_ARCHIVE_PATH',
+      help = 'use images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
+  parser.add_argument('--verbose', action='store_true',
+      help = 'show additional debugging info')
+  parser.add_argument('--force-download', action='store_true',
+      help = 'force to re-download images and videos that were already downloaded')
+  return parser.parse_args()
 
-# Functions
-# ---------------------------------
+# Process arguments
+def find_youtube_dl():
+  if not args.skip_videos:
+    if args.PATH_TO_YOUTUBE_DL:
+      if not os.path.isfile(args.PATH_TO_YOUTUBE_DL):
+        print("Could not find youtube-dl executable.")
+        print("Make sure you're pointing at the right file.")
+        print("A typical path would be: /usr/local/bin/youtube-dl")
+        sys.exit(-1)
+
+      return True, args.PATH_TO_YOUTUBE_DL
+    else:
+      if os.path.isfile('/usr/local/bin/youtube-dl'):
+        if args.verbose:
+          print("(Found youtube-dl automatically.)")
+          print("")
+        return True, '/usr/local/bin/youtube-dl'
+  return False, ''
 
 # Re-save the JSON data back to the original file.
 def resave_data(data, data_filename, first_data_line, year_str, month_str):
@@ -106,7 +142,6 @@ def download_avatar(user):
   user['profile_image_url_https_orig'] = user['profile_image_url_https']
   user['profile_image_url_https'] = local_filename
   return True
-
 
 def process_tweets(trial_run, media_precount_global=None):
   image_count_global = 0
@@ -252,7 +287,7 @@ def process_tweets(trial_run, media_precount_global=None):
                       # Output debugging info if needed
                       if args.verbose:
                         print("Debug info: Tweet ID = %s " % tweet['id'])
-                      sys.exit(2)
+                      sys.exit(-2)
                     time.sleep(5) # Wait 5 seconds before retrying
 
               # Change the URL so that the archive's index.html will now point to the
@@ -286,7 +321,7 @@ def process_tweets(trial_run, media_precount_global=None):
     except KeyboardInterrupt:
       print("")
       print("Interrupted! Come back any time.")
-      sys.exit(3)
+      sys.exit(-3)
 
   # End loop 1 (all the months)
   return image_count_global, video_count_global, media_count_global
@@ -297,52 +332,17 @@ def process_tweets(trial_run, media_precount_global=None):
 
 # Introduce yourself
 
-print("Twitter export image fill 1.06")
+print("Twitter export image fill 1.07")
 print("by Marcin Wichary (aresluna.org) and others")
 print("use --help to see options")
 print("")
 
 # Process arguments
 
-parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
-parser.add_argument('--include-videos', dest='PATH_TO_YOUTUBE_DL',
-    help = 'use youtube_dl to download videos (and animated GIFs) in addition to images')
-parser.add_argument('--skip-avatars', action='store_true',
-    help = 'do not download avatar images (faster)')
-parser.add_argument('--skip-retweets', action='store_true',
-    help = 'do not download images or videos from retweets (faster)')
-parser.add_argument('--skip-images', action='store_true',
-    help = 'do not download images in general')
-parser.add_argument('--skip-videos', action='store_true',
-    help = 'do not download videos (and animated GIFs) in general')
-parser.add_argument('--continue-from', dest='EARLIER_ARCHIVE_PATH',
-    help = 'use images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
-parser.add_argument('--verbose', action='store_true',
-    help = 'show additional debugging info')
-parser.add_argument('--force-download', action='store_true',
-    help = 'force to re-download images and videos that were already downloaded')
-args = parser.parse_args()
+args = parse_arguments()
 
 download_images = not args.skip_images
-download_videos = False
-
-if not args.skip_videos:
-  if args.PATH_TO_YOUTUBE_DL:
-    if not os.path.isfile(args.PATH_TO_YOUTUBE_DL):
-      print("Could not find the youtube-dl file.")
-      print("Make sure you're pointing at the right file.")
-      print("A typical path would be: /usr/local/bin/youtube-dl")
-      sys.exit(1)
-
-    download_videos = True
-    youtube_dl_path = args.PATH_TO_YOUTUBE_DL
-  else:
-    if os.path.isfile('/usr/local/bin/youtube-dl'):
-      download_videos = True
-      youtube_dl_path = '/usr/local/bin/youtube-dl'
-      if args.verbose:
-        print("(Found youtube-dl automatically.)")
-        print("")
+download_videos, youtube_dl_path = find_youtube_dl()
 
 # Check whether the earlier archive actually exists
 # (This is important because failure would mean quietly downloading all the files again)
@@ -354,7 +354,7 @@ if args.EARLIER_ARCHIVE_PATH:
   if not os.path.isfile(earlier_archive_path + '/data/js/tweet_index.js'):
     print("Could not find the earlier archive!")
     print("Make sure you're pointing at the directory that contains the index.html file.")
-    sys.exit(1)
+    sys.exit(-1)
 
 # Prepare environment, etc.
 
@@ -374,7 +374,7 @@ except:
   print("Please run this script from your tweet archive directory")
   print("(the one with index.html file).")
   print("")
-  sys.exit(1)
+  sys.exit(-1)
 
 # Scan the file to know how much work needs to be done
 
