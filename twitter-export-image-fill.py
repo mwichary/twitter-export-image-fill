@@ -376,6 +376,8 @@ except:
   print("")
   sys.exit(1)
 
+# Scan the file to know how much work needs to be done
+
 print("Scanning...")
 image_precount_global, video_precount_global, media_precount_global = process_tweets(True)
 
@@ -388,7 +390,12 @@ elif not args.skip_videos:
   print("To download: %i videos." % video_precount_global)
 print("(You can cancel any time. Next time you run, the script should resume at the last point.)")
 print("")
+
+# Actually download everything
+
 image_count_global, video_count_global, media_count_global = process_tweets(False, media_precount_global)
+
+# Communicate success
 
 print("")
 print("Done!")
