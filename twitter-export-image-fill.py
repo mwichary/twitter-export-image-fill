@@ -39,6 +39,8 @@ def print_intro():
 
 def parse_arguments():
   parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
+  parser.add_argument('--continue-after-failure', action='store_true',
+      help = 'continue the process when one of the downloads fail (creates incomplete archive)')
   parser.add_argument('--include-videos', dest='PATH_TO_YOUTUBE_DL',
       help = 'use youtube_dl to download videos (and animated GIFs) in addition to images')
   parser.add_argument('--skip-retweets', action='store_true',
@@ -176,11 +178,17 @@ def download_avatar(user):
   local_filename = "img/avatars/%s%s" % (user['screen_name'], extension)
 
   if not os.path.isfile(local_filename):
+    can_be_copied = args.EARLIER_ARCHIVE_PATH and os.path.isfile(earlier_archive_path + local_filename)
+
+    output_line("[%0.1f%%] %s/%s: %s avatar..." %
+      ((total_image_count + total_video_count) / total_media_precount * 100, \
+      year_str, month_str, \
+      "Copying" if can_be_copied else "Downloading"))
+
     # If using an earlier archive as a starting point, try to see if the
     # avatar image is there and can be copied
-    if args.EARLIER_ARCHIVE_PATH and os.path.isfile(earlier_archive_path + local_filename):
+    if can_be_copied:
       copyfile(earlier_archive_path + local_filename, local_filename)
-
     # Otherwise download it
     else:
       try:
@@ -201,18 +209,26 @@ def download_file(url, local_filename, is_video):
   while not downloaded:
     if (is_video and download_video(url, local_filename)) or \
        (not is_video and download_image(url, local_filename)):
-      downloaded = True
+      return True
     else:
       download_tries = download_tries - 1
       if download_tries == 0:
-        print("")
-        print("Failed to download %s after 3 tries." % url)
-        print("Please try again later?")
-        # Output debugging info if needed
-        if args.verbose:
-          print("Debug info: Tweet ID = %s " % tweet['id'])
-        sys.exit(-2)
-      time.sleep(5) # Wait 5 seconds before retrying
+        if not args.continue_after_failure:
+          print("")
+          print("")
+          print("Failed to download %s after 3 tries." % url)
+          print("Please try again later?")
+          print("(Alternatively, use --continue-after-failure option to skip past failed files.)")
+          # Output debugging info if needed
+          if args.verbose:
+            print("Debug info: Tweet ID = %s " % tweet['id'])
+          sys.exit(-2)
+        else:
+          failed_files.append(url)
+          return False
+      time.sleep(3) # Wait 3 seconds before retrying
+      sys.stdout.write(".")
+      sys.stdout.flush()
 
 
 def determine_image_or_video(medium, year_str, month_str, date, tweet, tweet_media_count):
@@ -281,15 +297,10 @@ def process_tweets(tweets_by_month, trial_run, total_media_precount=None):
       directory_name = 'data/js/tweets/%s_%s_media' % (year_str, month_str)
 
       for tweet in data:
-        # DEBUG
-        if not is_retweet(tweet):
-          continue
-
-        # Output the string just for the sake of status continuity (downloading 
-        # avatars can add up to take some time)
-        output_line("[%0.1f%%] %s/%s" %
-          ((total_image_count + total_video_count) / total_media_precount * 100, \
-          year_str, month_str)
+        # Output the string just for the sake of status continuity
+        if not trial_run:
+          output_line("[%0.1f%%] %s/%s: Analyzing avatars..." %
+              ((total_image_count + total_video_count) / total_media_precount * 100, year_str, month_str))
 
         # Before downloading any images, download an avatar for tweet's author
         # (same for retweet if asked to)
@@ -332,11 +343,6 @@ def process_tweets(tweets_by_month, trial_run, total_media_precount=None):
             if args.force_redownload and 'media_url_orig' in medium.keys():
               medium['media_url'] = medium['media_url_orig']
 
-            # Only make the directory when we're ready to write the first file;
-            # this will avoid empty directories
-            if not trial_run:
-              make_directory_if_needed(directory_name)
-
             is_video, url, local_filename = \
                 determine_image_or_video(medium, year_str, month_str, date, tweet, tweet_media_count)
 
@@ -351,14 +357,20 @@ def process_tweets(tweets_by_month, trial_run, total_media_precount=None):
                   "Copying" if can_be_copied else "Downloading", \
                   "video" if is_video else "image", url.split('/')[-1]))
 
+              # Only make the directory when we're ready to write the first file;
+              # this will avoid empty directories
+              make_directory_if_needed(directory_name)
+
+              success = False
               if can_be_copied:
                 copyfile(earlier_archive_path + local_filename, local_filename)
+                success = True
               else:
-                download_file(url, local_filename, is_video)
+                success = download_file(url, local_filename, is_video)
 
               # Change the URL so that the archive's index.html will now point to the
               # just-downloaded local file...
-              if (not is_video and download_images) or (is_video and download_videos):
+              if success and ((not is_video and download_images) or (is_video and download_videos)):
                 medium['media_url_orig'] = medium['media_url']
                 medium['media_url'] = local_filename
 
@@ -411,6 +423,8 @@ earlier_archive_path = test_earlier_archive_path()
 
 if not args.skip_avatars:
   make_directory_if_needed("img/avatars")
+if args.continue_after_failure:
+  failed_files = []
 
 # Process the index file
 
@@ -452,9 +466,14 @@ if download_videos:
   print("%i videos downloaded in total." % total_video_count)
 print("")
 
+if len(failed_files):
+  print("%i files have **NOT** been downloaded. Here are the URLs:" % len(failed_files))
+  for line in failed_files:
+    print(line)
+  print("")
+
 if total_video_count and not download_videos:
-  print("%i videos have NOT been downloaded." % total_video_count)
+  print("%i videos have **NOT** been downloaded." % total_video_count)
   print("If you want, use the include-videos option to download videos.")
   print("For more info, use --help, or look at https://github.com/mwichary/twitter-export-image-fill")
-
   print("")
