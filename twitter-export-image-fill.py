@@ -249,9 +249,9 @@ def determine_image_or_video(media, year_str, month_str, date, tweet, tweet_medi
   return is_video, url, local_filename
 
 
-def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
-  image_count_global = 0
-  video_count_global = 0
+def process_tweets(tweets_by_month, trial_run, total_media_precount=None):
+  total_image_count = 0
+  total_video_count = 0
 
   # Loop 1: Go through all the months
   # ---------------------------------
@@ -337,7 +337,7 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
               can_be_copied = args.EARLIER_ARCHIVE_PATH and os.path.isfile(earlier_archive_path + local_filename)
 
               output_line("[%0.1f%%] %s/%s: %s %s %s..." %
-                  ((image_count_global + video_count_global) / media_precount_global * 100, \
+                  ((total_image_count + total_video_count) / total_media_precount * 100, \
                   year_str, month_str, \
                   "Copying" if can_be_copied else "Downloading", \
                   "video" if is_video else "image", url.split('/')[-1]))
@@ -361,9 +361,9 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
             month_media_count += 1
 
             if is_video:
-              video_count_global += 1
+              total_video_count += 1
             else:
-              image_count_global += 1
+              total_image_count += 1
 
           # End loop 3 (images in a tweet)
 
@@ -379,7 +379,7 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
       sys.exit(-3)
 
   # End loop 1 (all the months)
-  return image_count_global, video_count_global
+  return total_image_count, total_video_count
 
 
 # Main entry point
@@ -411,40 +411,40 @@ month_count = len(tweets_by_month)
 # Scan the file to know how much work needs to be done
 
 print("Scanning...")
-image_precount_global, video_precount_global = \
+total_image_precount, total_video_precount = \
     process_tweets(tweets_by_month, True)
-media_precount_global = image_precount_global + video_precount_global
+total_media_precount = total_image_precount + total_video_precount
 
 print("")
 if not args.skip_images and not args.skip_videos:
   print("To process: %i months' worth of tweets with %i images and %i videos." % \
-      (month_count, image_precount_global, video_precount_global))
+      (month_count, total_image_precount, total_video_precount))
 elif not args.skip_images:
   print("To process: %i months' worth of tweets with %i images." % \
-      (month_count, image_precount_global))
+      (month_count, total_image_precount))
 elif not args.skip_videos:
   print("To process: %i months' worth of tweets with %i videos." % \
-      (month_count, video_precount_global))
+      (month_count, total_video_precount))
 print("(You can cancel any time. Next time you run, the script should resume at the last point.)")
 print("")
 
 # Actually download everything
 
-image_count_global, video_count_global = \
-    process_tweets(tweets_by_month, False, media_precount_global)
+total_image_count, total_video_count = \
+    process_tweets(tweets_by_month, False, total_media_precount)
 
 # Communicate success
 
 print("")
 print("Done!")
 if download_images:
-  print("%i images downloaded in total." % image_count_global)
+  print("%i images downloaded in total." % total_image_count)
 if download_videos:
-  print("%i videos downloaded in total." % video_count_global)
+  print("%i videos downloaded in total." % total_video_count)
 print("")
 
-if video_count_global and not download_videos:
-  print("%i videos have NOT been downloaded." % video_count_global)
+if total_video_count and not download_videos:
+  print("%i videos have NOT been downloaded." % total_video_count)
   print("If you want, use the include-videos option to download videos.")
   print("For more info, use --help, or look at https://github.com/mwichary/twitter-export-image-fill")
 
