@@ -74,6 +74,17 @@ def find_youtube_dl():
   return False, ''
 
 
+def test_earlier_archive_path():
+  if args.EARLIER_ARCHIVE_PATH:
+    earlier_archive_path = args.EARLIER_ARCHIVE_PATH
+    # Normalizes the slash at the end so it supports both including and not including it
+    earlier_archive_path = earlier_archive_path.rstrip('/') + '/'
+    if not os.path.isfile(earlier_archive_path + '/data/js/tweet_index.js'):
+      print("Could not find the earlier archive!")
+      print("Make sure you're pointing at the directory that contains the index.html file.")
+      sys.exit(-1)
+
+
 def load_tweet_index():
   index_filename = "data/js/tweet_index.js"
   try:
@@ -81,7 +92,7 @@ def load_tweet_index():
       index_str = index_file.read()
       index_str = re.sub(r'var tweet_index =', '', index_str)
       return json.loads(index_str)
-      
+
   except:
     print("Could not open the data file!")
     print("Please run this script from your tweet archive directory")
@@ -358,24 +369,16 @@ print("by Marcin Wichary (aresluna.org) and others")
 print("use --help to see options")
 print("")
 
-# Process arguments
+# Process arguments, find components
 
 args = parse_arguments()
-
 download_images = not args.skip_images
 download_videos, youtube_dl_path = find_youtube_dl()
 
 # Check whether the earlier archive actually exists
 # (This is important because failure would mean quietly downloading all the files again)
 
-if args.EARLIER_ARCHIVE_PATH:
-  earlier_archive_path = args.EARLIER_ARCHIVE_PATH
-  # Normalizes the slash at the end so it supports both including and not including it
-  earlier_archive_path = earlier_archive_path.rstrip('/') + '/'
-  if not os.path.isfile(earlier_archive_path + '/data/js/tweet_index.js'):
-    print("Could not find the earlier archive!")
-    print("Make sure you're pointing at the directory that contains the index.html file.")
-    sys.exit(-1)
+test_earlier_archive_path()
 
 # Prepare environment, etc.
 
