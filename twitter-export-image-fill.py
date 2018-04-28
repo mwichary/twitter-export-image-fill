@@ -120,8 +120,8 @@ def is_retweet(tweet):
   return 'retweeted_status' in tweet.keys()
 
 
-def stdout_flush():
-  sys.stdout.write("\033[K") # Clear the end of the line
+def output_line(line):
+  sys.stdout.write("\r%s\033[K" % line) # Clears the end of the line
   sys.stdout.flush()
 
 
@@ -339,12 +339,11 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
               # image file there first, and copy it if present
               can_be_copied = args.EARLIER_ARCHIVE_PATH and os.path.isfile(earlier_archive_path + local_filename)
 
-              sys.stdout.write("\r[%0.1f%%] %s/%s: %s %s %s..." %
+              output_line("[%0.1f%%] %s/%s: %s %s %s..." %
                   ((image_count_global + video_count_global) / media_precount_global * 100, \
                   year_str, month_str, \
                   "Copying" if can_be_copied else "Downloading", \
                   "video" if is_video else "image", url.split('/')[-1]))
-              stdout_flush()
 
               if can_be_copied:
                 copyfile(earlier_archive_path + local_filename, local_filename)
@@ -373,8 +372,7 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
 
       # End loop 2 (tweets in a month)
       if not trial_run and month_media_count:
-        sys.stdout.write("\r%i images/videos downloaded from %s/%s." % (month_media_count, year_str, month_str))
-        stdout_flush()
+        output_line("%i images/videos downloaded from %s/%s." % (month_media_count, year_str, month_str))
         print("")
 
     # Nicer support for Ctrl-C
