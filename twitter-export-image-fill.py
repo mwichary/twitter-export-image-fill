@@ -203,7 +203,7 @@ def download_or_copy_avatar(user, total_image_count, total_video_count, total_me
   return True
 
 
-def download_file(url, local_filename, is_video):
+def download_file(url, local_filename, is_video, tweet):
   downloaded = False
   download_tries = 3
   while not downloaded:
@@ -224,7 +224,7 @@ def download_file(url, local_filename, is_video):
             print("Debug info: Tweet ID = %s " % tweet['id'])
           sys.exit(-2)
         else:
-          failed_files.append(url)
+          failed_files.append((tweet['id'], url))
           return False
       time.sleep(3) # Wait 3 seconds before retrying
       sys.stdout.write(".")
@@ -368,7 +368,7 @@ def process_tweets(tweets_by_month, trial_run, total_media_precount=None):
                 copyfile(earlier_archive_path + local_filename, local_filename)
                 success = True
               else:
-                success = download_file(url, local_filename, is_video)
+                success = download_file(url, local_filename, is_video, tweet)
 
               # Change the URL so that the archive's index.html will now point to the
               # just-downloaded local file...
@@ -471,7 +471,7 @@ print("")
 if len(failed_files):
   print("%i files have **NOT** been downloaded. Here are the URLs:" % len(failed_files))
   for line in failed_files:
-    print(line)
+    print("- https://twitter.com/user/status/%s: %s" % line)
   print("")
 
 if total_video_count and not download_videos:
