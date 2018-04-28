@@ -281,13 +281,10 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
         data = json.loads(data_str)
 
       tweet_length = len(data)
-      month_tweet_count = 0
       month_media_count = 0
       directory_name = 'data/js/tweets/%s_%s_media' % (year_str, month_str)
 
       for tweet in data:
-        month_tweet_count += 1
-
         # Before downloading any images, download an avatar for tweet's author
         # (same for retweet if asked to)
         if not trial_run and not args.skip_avatars:
