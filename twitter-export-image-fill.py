@@ -116,6 +116,10 @@ def make_directory_if_needed(dir_path):
     os.mkdir(dir_path)
 
 
+def is_retweet(tweet):
+  return 'retweeted_status' in tweet.keys()
+
+
 def stdout_flush():
   sys.stdout.write("\033[K") # Clear the end of the line
   sys.stdout.flush()
@@ -215,13 +219,13 @@ def download_file(url, local_filename, is_video):
       time.sleep(5) # Wait 5 seconds before retrying
 
 
-def determine_image_or_video(media, year_str, month_str, date, tweet, retweeted, tweet_media_count):
+def determine_image_or_video(media, year_str, month_str, date, tweet, tweet_media_count):
   # Video
   if '/video/' in media['expanded_url']:
     is_video = True
     url = media['expanded_url']
     local_filename = 'data/js/tweets/%s_%s_media/%s-%s-video-%s%s.mp4' %\
-        (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
+        (year_str, month_str, date, tweet['id'], 'rt-' if is_retweet(tweet) else '',
          tweet_media_count)
   # Animated GIF transcoded into a video
   elif 'tweet_video_thumb' in media['media_url']:
@@ -229,7 +233,7 @@ def determine_image_or_video(media, year_str, month_str, date, tweet, retweeted,
     id = re.match(r'(.*)tweet_video_thumb/(.*)\.', media['media_url']).group(2)
     url = "https://video.twimg.com/tweet_video/%s.mp4" % id
     local_filename = 'data/js/tweets/%s_%s_media/%s-%s-gif-video-%s%s.mp4' %\
-        (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
+        (year_str, month_str, date, tweet['id'], 'rt-' if is_retweet(tweet) else '',
          tweet_media_count)
   # Regular non-animated image
   else:
@@ -239,7 +243,7 @@ def determine_image_or_video(media, year_str, month_str, date, tweet, retweeted,
     # Download the original/best image size, rather than the default one
     url = url + ':orig'
     local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s%s' % \
-        (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
+        (year_str, month_str, date, tweet['id'], 'rt-' if is_retweet(tweet) else '',
          tweet_media_count, extension)
 
   return is_video, url, local_filename
@@ -283,7 +287,6 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
 
       for tweet in data:
         month_tweet_count += 1
-        retweeted = 'retweeted_status' in tweet.keys()
 
         # Before downloading any images, download an avatar for tweet's author
         # (same for retweet if asked to)
@@ -291,7 +294,7 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
           data_changed = download_avatar(tweet['user'])
 
           data_changed_retweet = False
-          if not args.skip_retweets and retweeted:
+          if not args.skip_retweets and is_retweet(tweet):
             data_changed_retweet = download_avatar(tweet['retweeted_status']['user'])
 
           # Re-save the JSON file if we grabbed any avatars
@@ -299,7 +302,7 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
             resave_data(data, data_filename, first_data_line, year_str, month_str)
 
         # Don't continue with saving images if a retweet (unless forced to)
-        if (args.skip_retweets) and retweeted:
+        if (args.skip_retweets) and is_retweet(tweet):
           continue
 
         if tweet['entities']['media']:
@@ -329,7 +332,7 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
               make_directory_if_needed(directory_name)
 
             is_video, url, local_filename = \
-                determine_image_or_video(media, year_str, month_str, date, tweet, retweeted, tweet_media_count)
+                determine_image_or_video(media, year_str, month_str, date, tweet, tweet_media_count)
 
             if not trial_run:
               # If using an earlier archive as a starting point, try to find the desired
