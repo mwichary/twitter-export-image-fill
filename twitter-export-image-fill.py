@@ -7,13 +7,10 @@ by Marcin Wichary (aresluna.org)
 Site: https://github.com/mwichary/twitter-export-image-fill
 
 This is free and unencumbered software released into the public domain.
-
 Anyone is free to copy, modify, publish, use, compile, sell, or
 distribute this software, either in source code form or as a compiled
 binary, for any purpose, commercial or non-commercial, and by any
-means.
-
-For more information, please refer to <http://unlicense.org/>
+means. For more information, please refer to <http://unlicense.org/>
 '''
 
 # Imports
@@ -23,15 +20,14 @@ import argparse
 import json
 import os
 import re
-import stat
 import sys
 import time
 from shutil import copyfile
 # The location of urlretrieve changed modules in Python 3
 if (sys.version_info > (3, 0)):
-    from urllib.request import urlretrieve
+  from urllib.request import urlretrieve
 else:
-    from urllib import urlretrieve
+  from urllib import urlretrieve
 
 
 def print_intro():
@@ -46,7 +42,7 @@ def parse_arguments():
   parser.add_argument('--include-videos', dest='PATH_TO_YOUTUBE_DL',
       help = 'use youtube_dl to download videos (and animated GIFs) in addition to images')
   parser.add_argument('--skip-retweets', action='store_true',
-      help = 'do not download images or videos from retweets (faster)')
+      help = 'do not download images or videos from retweets')
   parser.add_argument('--skip-images', action='store_true',
       help = 'do not download images in general')
   parser.add_argument('--skip-videos', action='store_true',
@@ -111,9 +107,9 @@ def load_tweet_index():
     sys.exit(-1)
 
 
-def make_directory_if_needed(dir_path):
-  if not os.path.isdir(dir_path):
-    os.mkdir(dir_path)
+def make_directory_if_needed(directory_path):
+  if not os.path.isdir(directory_path):
+    os.mkdir(directory_path)
 
 
 def is_retweet(tweet):
@@ -219,32 +215,32 @@ def download_file(url, local_filename, is_video):
       time.sleep(5) # Wait 5 seconds before retrying
 
 
-def determine_image_or_video(media, year_str, month_str, date, tweet, tweet_media_count):
+def determine_image_or_video(medium, year_str, month_str, date, tweet, tweet_media_count):
   # Video
-  if '/video/' in media['expanded_url']:
+  if '/video/' in medium['expanded_url']:
     is_video = True
-    url = media['expanded_url']
-    local_filename = 'data/js/tweets/%s_%s_media/%s-%s-video-%s%s.mp4' %\
-        (year_str, month_str, date, tweet['id'], 'rt-' if is_retweet(tweet) else '',
-         tweet_media_count)
+    separator = '-video'
+    url = medium['expanded_url']
+    extension = '.mp4'
   # Animated GIF transcoded into a video
-  elif 'tweet_video_thumb' in media['media_url']:
+  elif 'tweet_video_thumb' in medium['media_url']:
     is_video = True
-    id = re.match(r'(.*)tweet_video_thumb/(.*)\.', media['media_url']).group(2)
+    separator = '-gif-video'
+    id = re.match(r'(.*)tweet_video_thumb/(.*)\.', medium['media_url']).group(2)
     url = "https://video.twimg.com/tweet_video/%s.mp4" % id
-    local_filename = 'data/js/tweets/%s_%s_media/%s-%s-gif-video-%s%s.mp4' %\
-        (year_str, month_str, date, tweet['id'], 'rt-' if is_retweet(tweet) else '',
-         tweet_media_count)
+    extension = os.path.splitext(url)[1]
   # Regular non-animated image
   else:
     is_video = False
-    url = media['media_url_https']
+    separator = ''
+    url = medium['media_url_https']
     extension = os.path.splitext(url)[1]
     # Download the original/best image size, rather than the default one
     url = url + ':orig'
-    local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s%s' % \
-        (year_str, month_str, date, tweet['id'], 'rt-' if is_retweet(tweet) else '',
-         tweet_media_count, extension)
+
+  local_filename = 'data/js/tweets/%s_%s_media/%s-%s%s-%s%s%s' % \
+      (year_str, month_str, date, tweet['id'], separator,
+      'rt-' if is_retweet(tweet) else '', tweet_media_count, extension)
 
   return is_video, url, local_filename
 
@@ -285,6 +281,16 @@ def process_tweets(tweets_by_month, trial_run, total_media_precount=None):
       directory_name = 'data/js/tweets/%s_%s_media' % (year_str, month_str)
 
       for tweet in data:
+        # DEBUG
+        if not is_retweet(tweet):
+          continue
+
+        # Output the string just for the sake of status continuity (downloading 
+        # avatars can add up to take some time)
+        output_line("[%0.1f%%] %s/%s" %
+          ((total_image_count + total_video_count) / total_media_precount * 100, \
+          year_str, month_str)
+
         # Before downloading any images, download an avatar for tweet's author
         # (same for retweet if asked to)
         if not trial_run and not args.skip_avatars:
@@ -302,7 +308,10 @@ def process_tweets(tweets_by_month, trial_run, total_media_precount=None):
         if (args.skip_retweets) and is_retweet(tweet):
           continue
 
-        if tweet['entities']['media']:
+        media = tweet['retweeted_status']['entities']['media'] if is_retweet(tweet) \
+          else tweet['entities']['media']
+
+        if media:
           tweet_media_count = 1
 
           # Rewrite tweet date to be used in the filename prefix
@@ -313,15 +322,15 @@ def process_tweets(tweets_by_month, trial_run, total_media_precount=None):
           # Loop 3: Go through all the media in a tweet
           # -------------------------------------------
 
-          for media in tweet['entities']['media']:
+          for medium in media:
             # media_url_orig being present means we already processed/downloaded
             # this image or video
-            if 'media_url_orig' in media.keys() and not args.force_redownload:
+            if 'media_url_orig' in medium.keys() and not args.force_redownload:
               continue
 
             # If forcing download, the above has to be undone.
-            if args.force_redownload and 'media_url_orig' in media.keys():
-              media['media_url'] = media['media_url_orig']
+            if args.force_redownload and 'media_url_orig' in medium.keys():
+              medium['media_url'] = medium['media_url_orig']
 
             # Only make the directory when we're ready to write the first file;
             # this will avoid empty directories
@@ -329,7 +338,7 @@ def process_tweets(tweets_by_month, trial_run, total_media_precount=None):
               make_directory_if_needed(directory_name)
 
             is_video, url, local_filename = \
-                determine_image_or_video(media, year_str, month_str, date, tweet, tweet_media_count)
+                determine_image_or_video(medium, year_str, month_str, date, tweet, tweet_media_count)
 
             if not trial_run:
               # If using an earlier archive as a starting point, try to find the desired
@@ -350,8 +359,8 @@ def process_tweets(tweets_by_month, trial_run, total_media_precount=None):
               # Change the URL so that the archive's index.html will now point to the
               # just-downloaded local file...
               if (not is_video and download_images) or (is_video and download_videos):
-                media['media_url_orig'] = media['media_url']
-                media['media_url'] = local_filename
+                medium['media_url_orig'] = medium['media_url']
+                medium['media_url'] = local_filename
 
                 # Re-save the original JSON file every time, so that the script can continue
                 # from this point
