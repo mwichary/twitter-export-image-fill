@@ -168,7 +168,7 @@ def download_video(url, local_filename):
 
 # Downloads an avatar image for a tweet.
 # @return Whether data was rewritten
-def download_avatar(user):
+def download_or_copy_avatar(user, total_image_count, total_video_count, total_media_precount, year_str, month_str):
   # _orig existing means we already processed this user
   if 'profile_image_url_https_orig' in user:
     return False
@@ -305,11 +305,13 @@ def process_tweets(tweets_by_month, trial_run, total_media_precount=None):
         # Before downloading any images, download an avatar for tweet's author
         # (same for retweet if asked to)
         if not trial_run and not args.skip_avatars:
-          data_changed = download_avatar(tweet['user'])
+          data_changed = download_or_copy_avatar(tweet['user'], \
+              total_image_count, total_video_count, total_media_precount, year_str, month_str)
 
           data_changed_retweet = False
           if not args.skip_retweets and is_retweet(tweet):
-            data_changed_retweet = download_avatar(tweet['retweeted_status']['user'])
+            data_changed_retweet = download_or_copy_avatar(tweet['retweeted_status']['user'], \
+                total_image_count, total_video_count, total_media_precount, year_str, month_str)
 
           # Re-save the JSON file if we grabbed any avatars
           if data_changed or data_changed_retweet:
