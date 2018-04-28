@@ -45,14 +45,14 @@ def parse_arguments():
   parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
   parser.add_argument('--include-videos', dest='PATH_TO_YOUTUBE_DL',
       help = 'use youtube_dl to download videos (and animated GIFs) in addition to images')
-  parser.add_argument('--skip-avatars', action='store_true',
-      help = 'do not download avatar images (faster)')
   parser.add_argument('--skip-retweets', action='store_true',
       help = 'do not download images or videos from retweets (faster)')
   parser.add_argument('--skip-images', action='store_true',
       help = 'do not download images in general')
   parser.add_argument('--skip-videos', action='store_true',
       help = 'do not download videos (and animated GIFs) in general')
+  parser.add_argument('--skip-avatars', action='store_true',
+      help = 'do not download avatar images')
   parser.add_argument('--continue-from', dest='EARLIER_ARCHIVE_PATH',
       help = 'use images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
   parser.add_argument('--verbose', action='store_true',
@@ -109,6 +109,11 @@ def load_tweet_index():
     print("(the one with index.html file).")
     print("")
     sys.exit(-1)
+
+
+def make_directory_if_needed(dir_path):
+  if not os.path.isdir(dir_path):
+    os.mkdir(dir_path)
 
 
 # Re-save the JSON data back to the original file.
@@ -316,8 +321,8 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
 
             # Only make the directory when we're ready to write the first file;
             # this will avoid empty directories
-            if not trial_run and not os.path.isdir(directory_name):
-              os.mkdir(directory_name)
+            if not trial_run:
+              make_directory_if_needed(directory_name)
 
             is_video, url, local_filename = \
                 determine_image_or_video(media, year_str, month_str, date, tweet, retweeted, tweet_media_count)
@@ -398,8 +403,8 @@ earlier_archive_path = test_earlier_archive_path()
 
 # Prepare environment, etc.
 
-if not os.path.isdir("img/avatars"):
-  os.mkdir("img/avatars")
+if not args.skip_avatars:
+  make_directory_if_needed("img/avatars")
 
 # Process the index file
 
