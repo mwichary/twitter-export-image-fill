@@ -57,7 +57,7 @@ def parse_arguments():
       help = 'use images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
   parser.add_argument('--verbose', action='store_true',
       help = 'show additional debugging info')
-  parser.add_argument('--force-download', action='store_true',
+  parser.add_argument('--force-redownload', action='store_true',
       help = 'force to re-download images and videos that were already downloaded')
   return parser.parse_args()
 
@@ -185,6 +185,26 @@ def download_avatar(user):
   return True
 
 
+def download_file(url, local_filename, is_video):
+  downloaded = False
+  download_tries = 3
+  while not downloaded:
+    if (is_video and download_video(url, local_filename)) or \
+       (not is_video and download_image(url, local_filename)):
+      downloaded = True
+    else:
+      download_tries = download_tries - 1
+      if download_tries == 0:
+        print("")
+        print("Failed to download %s after 3 tries." % url)
+        print("Please try again later?")
+        # Output debugging info if needed
+        if args.verbose:
+          print("Debug info: Tweet ID = %s " % tweet['id'])
+        sys.exit(-2)
+      time.sleep(5) # Wait 5 seconds before retrying
+
+
 def determine_image_or_video(media, year_str, month_str, date, tweet, retweeted, tweet_media_count):
   # Video
   if '/video/' in media['expanded_url']:
@@ -287,11 +307,11 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
           for media in tweet['entities']['media']:
             # media_url_orig being present means we already processed/downloaded
             # this image or video
-            if 'media_url_orig' in media.keys() and not args.force_download:
+            if 'media_url_orig' in media.keys() and not args.force_redownload:
               continue
 
             # If forcing download, the above has to be undone.
-            if args.force_download and 'media_url_orig' in media.keys():
+            if args.force_redownload and 'media_url_orig' in media.keys():
               media['media_url'] = media['media_url_orig']
 
             # Only make the directory when we're ready to write the first file;
@@ -303,8 +323,6 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
                 determine_image_or_video(media, year_str, month_str, date, tweet, retweeted, tweet_media_count)
 
             can_be_copied = False
-            downloaded = False
-            download_tries = 3
 
             # If using an earlier archive as a starting point, try to find the desired
             # image file there first, and copy it if present
@@ -322,25 +340,10 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
               if can_be_copied:
                 copyfile(earlier_archive_path + local_filename, local_filename)
               else:
-                while not downloaded:
-                  # Actually download the file!
-                  if (is_video and download_video(url, local_filename)) or \
-                     (not is_video and download_image(url, local_filename)):
-                    downloaded = True
-                  else:
-                    download_tries = download_tries - 1
-                    if download_tries == 0:
-                      print("")
-                      print("Failed to download %s after 3 tries." % url)
-                      print("Please try again later?")
-                      # Output debugging info if needed
-                      if args.verbose:
-                        print("Debug info: Tweet ID = %s " % tweet['id'])
-                      sys.exit(-2)
-                    time.sleep(5) # Wait 5 seconds before retrying
+                download_file(url, local_filename, is_video)
 
               # Change the URL so that the archive's index.html will now point to the
-              # just-download local file...
+              # just-downloaded local file...
               if (not is_video and download_images) or (is_video and download_videos):
                 media['media_url_orig'] = media['media_url']
                 media['media_url'] = local_filename
