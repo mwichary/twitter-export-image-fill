@@ -213,7 +213,7 @@ def process_tweets(trial_run, media_precount_global=None):
       directory_name = 'data/js/tweets/%s_%s_media' % (year_str, month_str)
 
       for tweet in data:
-        month_tweet_count = month_tweet_count + 1
+        month_tweet_count += 1
         retweeted = 'retweeted_status' in tweet.keys()
 
         # Before downloading any images, download an avatar for tweet's author
@@ -332,13 +332,14 @@ def process_tweets(trial_run, media_precount_global=None):
                 # from this point
                 resave_data(data, data_filename, first_data_line, year_str, month_str)
 
-            tweet_media_count = tweet_media_count + 1
-            month_media_count = month_media_count + 1
+            tweet_media_count += 1
+            month_media_count += 1
+
             if is_video:
-              video_count_global = video_count_global + 1
+              video_count_global += 1
             else:
-              image_count_global = image_count_global + 1
-            media_count_global = media_count_global + 1
+              image_count_global += 1
+            media_count_global += 1
 
           # End loop 3 (images in a tweet)
 
