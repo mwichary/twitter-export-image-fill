@@ -102,6 +102,9 @@ This script is in public domain. Run free.
 
 ### Version history
 
+**1.06 (28 Apr 2018)**
+- Better communication of progress
+
 **1.05 (27 Apr 2018)**
 - Better integration with youtube-dl for downloading videos and animated GIFs
 - Semi-automatic detection of youtube-dl
