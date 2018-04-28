@@ -44,9 +44,15 @@ The script will try to find youtube-dl in its common path, but it might fail.
 
 Note: This includes animated GIFs, which Twitter transcodes into videos.
 
-`--skip-avatars`
+`--continue-after-failure`
 
-Do not download avatars from tweets (by default, user avatars are downloaded alongside tweet images).
+Continue the process when one of the downloads fail. This will create an incomplete archive,
+although it is sometimes necessary as apparently Twitter deletes some images.
+The list of failed images will be output at the end.
+
+`--backfill-from EARLIER_ARCHIVE_PATH`
+
+Use an earlier archive to get images from if possible, instead of downloading (useful for incremental backups), e.g. `--backfill-from ~/Desktop/tweet-archive`
 
 `--skip-retweets`
 
@@ -60,9 +66,13 @@ Do not download any images (just videos).
 
 Do not download any videos (just images).
 
-`--continue-from EARLIER_ARCHIVE_PATH`
+`--skip-avatars`
 
-Use an earlier archive to get images from if possible, instead of downloading (useful for incremental backups), e.g. `--continue-from ~/Desktop/tweet-archive`
+Do not download avatars from tweets (by default, user avatars are downloaded alongside tweet images).
+
+`--force-redownload`
+
+Force the script to not be very smart and download again stuff that’s already been download.
 
 
 ### Details

@@ -39,10 +39,12 @@ def print_intro():
 
 def parse_arguments():
   parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
-  parser.add_argument('--continue-after-failure', action='store_true',
-      help = 'continue the process when one of the downloads fail (creates incomplete archive)')
   parser.add_argument('--include-videos', dest='PATH_TO_YOUTUBE_DL',
       help = 'use youtube_dl to download videos (and animated GIFs) in addition to images')
+  parser.add_argument('--continue-after-failure', action='store_true',
+      help = 'continue the process when one of the downloads fail (creates incomplete archive)')
+  parser.add_argument('--backfill-from', dest='EARLIER_ARCHIVE_PATH',
+      help = 'copy images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
   parser.add_argument('--skip-retweets', action='store_true',
       help = 'do not download images or videos from retweets')
   parser.add_argument('--skip-images', action='store_true',
@@ -51,8 +53,6 @@ def parse_arguments():
       help = 'do not download videos (and animated GIFs) in general')
   parser.add_argument('--skip-avatars', action='store_true',
       help = 'do not download avatar images')
-  parser.add_argument('--continue-from', dest='EARLIER_ARCHIVE_PATH',
-      help = 'use images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
   parser.add_argument('--verbose', action='store_true',
       help = 'show additional debugging info')
   parser.add_argument('--force-redownload', action='store_true',
