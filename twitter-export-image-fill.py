@@ -83,6 +83,9 @@ def test_earlier_archive_path():
       print("Could not find the earlier archive!")
       print("Make sure you're pointing at the directory that contains the index.html file.")
       sys.exit(-1)
+    return earlier_archive_path
+  else:
+    return None
 
 
 def load_tweet_index():
@@ -280,6 +283,7 @@ def process_tweets(trial_run, media_precount_global=None):
             if 'media_url_orig' in media.keys() and not args.force_download:
               continue
 
+            # If forcing download, the above has to be undone.
             if args.force_download and 'media_url_orig' in media.keys():
               media['media_url'] = media['media_url_orig']
 
@@ -385,7 +389,7 @@ download_videos, youtube_dl_path = find_youtube_dl()
 # Check whether the earlier archive actually exists
 # (This is important because failure would mean quietly downloading all the files again)
 
-test_earlier_archive_path()
+earlier_archive_path = test_earlier_archive_path()
 
 # Prepare environment, etc.
 
