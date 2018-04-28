@@ -33,7 +33,7 @@ if (sys.version_info > (3, 0)):
 else:
     from urllib import urlretrieve
 
-# Process arguments
+
 def parse_arguments():
   parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
   parser.add_argument('--include-videos', dest='PATH_TO_YOUTUBE_DL',
@@ -54,7 +54,7 @@ def parse_arguments():
       help = 'force to re-download images and videos that were already downloaded')
   return parser.parse_args()
 
-# Process arguments
+
 def find_youtube_dl():
   if not args.skip_videos:
     if args.PATH_TO_YOUTUBE_DL:
@@ -73,6 +73,23 @@ def find_youtube_dl():
         return True, '/usr/local/bin/youtube-dl'
   return False, ''
 
+
+def load_tweet_index():
+  index_filename = "data/js/tweet_index.js"
+  try:
+    with open(index_filename) as index_file:
+      index_str = index_file.read()
+      index_str = re.sub(r'var tweet_index =', '', index_str)
+      return json.loads(index_str)
+      
+  except:
+    print("Could not open the data file!")
+    print("Please run this script from your tweet archive directory")
+    print("(the one with index.html file).")
+    print("")
+    sys.exit(-1)
+
+
 # Re-save the JSON data back to the original file.
 def resave_data(data, data_filename, first_data_line, year_str, month_str):
   # Writing to a separate file so that we can only copy over the
@@ -84,6 +101,7 @@ def resave_data(data, data_filename, first_data_line, year_str, month_str):
   os.remove(data_filename)
   os.rename(data_filename_temp, data_filename)
 
+
 # Download a given image directly from the URL
 def download_image(url, local_filename):
   if not download_images:
@@ -94,6 +112,7 @@ def download_image(url, local_filename):
     return True
   except:
     return False
+
 
 # Download a given video via youtube-dl
 def download_video(url, local_filename):
@@ -112,6 +131,7 @@ def download_video(url, local_filename):
       return False
   except:
     return False
+
 
 # Downloads an avatar image for a tweet.
 # @return Whether data was rewritten
@@ -142,6 +162,7 @@ def download_avatar(user):
   user['profile_image_url_https_orig'] = user['profile_image_url_https']
   user['profile_image_url_https'] = local_filename
   return True
+
 
 def process_tweets(trial_run, media_precount_global=None):
   image_count_global = 0
@@ -363,31 +384,20 @@ if not os.path.isdir("img/avatars"):
 
 # Process the index file to see what needs to be done
 
-index_filename = "data/js/tweet_index.js"
-try:
-  with open(index_filename) as index_file:
-    index_str = index_file.read()
-    index_str = re.sub(r'var tweet_index =', '', index_str)
-    index = json.loads(index_str)
-except:
-  print("Could not open the data file!")
-  print("Please run this script from your tweet archive directory")
-  print("(the one with index.html file).")
-  print("")
-  sys.exit(-1)
+index = load_tweet_index()
 
 # Scan the file to know how much work needs to be done
 
 print("Scanning...")
 image_precount_global, video_precount_global, media_precount_global = process_tweets(True)
 
-print("To process: %i months worth of tweets." % (len(index)))
+print("")
 if not args.skip_images and not args.skip_videos:
-  print("To download: %i images and %i videos." % (image_precount_global, video_precount_global))
+  print("To process: %i months' worth of tweets with %i images and %i videos." % (len(index), image_precount_global, video_precount_global))
 elif not args.skip_images:
-  print("To download: %i images." % image_precount_global)
+  print("To process: %i months' worth of tweets with %i images." % (len(index), image_precount_global))
 elif not args.skip_videos:
-  print("To download: %i videos." % video_precount_global)
+  print("To process: %i months' worth of tweets with %i videos." % (len(index), video_precount_global))
 print("(You can cancel any time. Next time you run, the script should resume at the last point.)")
 print("")
 
