@@ -208,7 +208,7 @@ def determine_image_or_video(media, year_str, month_str, date, tweet, retweeted,
   return is_video, url, local_filename
 
 
-def process_tweets(trial_run, media_precount_global=None):
+def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
   image_count_global = 0
   video_count_global = 0
   media_count_global = 0
@@ -216,7 +216,7 @@ def process_tweets(trial_run, media_precount_global=None):
   # Loop 1: Go through all the months
   # ---------------------------------
 
-  for date in index:
+  for date in tweets_by_month:
     try:
       year_str = '%04d' % date['year']
       month_str = '%02d' % date['month']
@@ -396,28 +396,34 @@ earlier_archive_path = test_earlier_archive_path()
 if not os.path.isdir("img/avatars"):
   os.mkdir("img/avatars")
 
-# Process the index file to see what needs to be done
+# Process the index file
 
-index = load_tweet_index()
+tweets_by_month = load_tweet_index()
+month_count = len(tweets_by_month)
 
 # Scan the file to know how much work needs to be done
 
 print("Scanning...")
-image_precount_global, video_precount_global, media_precount_global = process_tweets(True)
+image_precount_global, video_precount_global, media_precount_global = \
+    process_tweets(tweets_by_month, True)
 
 print("")
 if not args.skip_images and not args.skip_videos:
-  print("To process: %i months' worth of tweets with %i images and %i videos." % (len(index), image_precount_global, video_precount_global))
+  print("To process: %i months' worth of tweets with %i images and %i videos." % \
+      (month_count, image_precount_global, video_precount_global))
 elif not args.skip_images:
-  print("To process: %i months' worth of tweets with %i images." % (len(index), image_precount_global))
+  print("To process: %i months' worth of tweets with %i images." % \
+      (month_count, image_precount_global))
 elif not args.skip_videos:
-  print("To process: %i months' worth of tweets with %i videos." % (len(index), video_precount_global))
+  print("To process: %i months' worth of tweets with %i videos." % \
+      (month_count, video_precount_global))
 print("(You can cancel any time. Next time you run, the script should resume at the last point.)")
 print("")
 
 # Actually download everything
 
-image_count_global, video_count_global, media_count_global = process_tweets(False, media_precount_global)
+image_count_global, video_count_global, media_count_global = \
+    process_tweets(tweets_by_month, False, media_precount_global)
 
 # Communicate success
 
