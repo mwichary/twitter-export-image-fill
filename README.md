@@ -1,10 +1,10 @@
 # twitter-export-image-fill
 
-Twitter allows you to download your tweet archive, but that archive doesn’t contain your images. Ergo, it is not really an archive.
+Twitter allows you to download your tweet archive, but that archive doesn’t contain your images or videos. Ergo, it is not really an archive.
 
 This script:
-- downloads all the images from your tweets locally
-- rewrites the archive files so that they point to the local images
+- downloads all the images and videos from your tweets locally
+- rewrites the archive files so that they point to the local images/videos
 
 (I wrote a [similar script for a Medium archive](https://github.com/mwichary/medium-export-image-fill).)
 
@@ -36,20 +36,29 @@ Note: You can interrupt the script at any time and run it again – it should s
 
 `--include-videos PATH_TO_YOUTUBE_DL`
 
-Download videos from tweets… sort of. This option makes the script output a shell file that
-can be run later to download all the videos using
-<a href='https://rg3.github.io/youtube-dl/'>youtube-dl</a>. You have to
+Download videos from tweets. You have to
 <a href='https://rg3.github.io/youtube-dl/download.html'>download/install</a>
 youtube-dl manually and then provide a path to it, e.g.
 `--include-videos /usr/local/Cellar/youtube-dl/2017.01.05/bin/youtube-dl`
+The script will try to find youtube-dl in its common path, but it might fail
 
-`--include-retweets`
-
-Download images from retweets (by default, the script only downloads images from your own tweets)
+Note: This includes animated GIFs, which Twitter transcodes into videos.
 
 `--skip-avatars`
 
 Do not download avatars from tweets (by default, user avatars are downloaded alongside tweet images)
+
+`--skip-retweets`
+
+Do not download images from retweets (done by default)
+
+`--skip-images`
+
+Do not download any images (just videos)
+
+`--skip-videos`
+
+Do not download any videos (just images)
 
 `--continue-from EARLIER_ARCHIVE_PATH`
 
@@ -66,23 +75,24 @@ Use an earlier archive to get images from if possible, instead of downloading (u
 
 ### FAQ
 
-**Does this work on Windows?**
+**Does this work on Windows or lInux?**
 
-I wrote/tested it on Mac OS only, but I’ve heard of people having successs running it on Windows.
-
-**How about Linux?**
-
-Some reported it worked for them properly on Ubuntu, FreeBSD, and Debian.
+I wrote/tested it on Mac OS only, but I’ve heard of people having success
+running it on Windows. Others reported it worked for them properly on
+Ubuntu, FreeBSD, and Debian.
 
 **Does this download videos in addition to images?**
 
-Not really, but you can use the experimental `include-videos` parameter to download them
-later easily using youtube-dl. Note that those videos won’t be playable from the archive’s
-local webpage, but they will be downloaded locally into your file system.
+Sort of. There is an experimental youtube-dl integration. Check out the
+`include-videos` parameter above. Note that the videos won’t be playable
+from the archive’s local webpage, but they will be downloaded locally
+into your file system.
 
 **Some of my images fail to load, even though they open on Twitter**
 
-Image URLs can change if you protect (or unprotect?) your account, and the archive can get out of sync. If that matches your usage, simply redownload a fresh archive.
+Image URLs can change if you protect (or unprotect?) your account, and the
+archive can get out of sync. If that matches your usage, simply
+re-download a fresh archive.
 
 
 ### License
@@ -91,6 +101,12 @@ This script is in public domain. Run free.
 
 
 ### Version history
+
+**1.05 (27 Apr 2018)**
+- Better integration with youtube-dl for downloading videos and animated GIFs
+- Semi-automatic detection of youtube-dl
+- Downloading videos will now resume correctly after stopping
+- Images and videos and retweets are now downloaded by default (but you can opt out)
 
 **1.04 (26 Apr 2018)**
 - Downloads animated GIFs as videos rather than stills (thanks to AlexLady for inspiration)

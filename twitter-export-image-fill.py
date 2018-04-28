@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-Twitter export image fill 1.04
+Twitter export image fill 1.05
 by Marcin Wichary (aresluna.org)
 
 Site: https://github.com/mwichary/twitter-export-image-fill
@@ -48,6 +48,34 @@ def resave_data(data, data_filename, first_data_line, year_str, month_str):
   os.remove(data_filename)
   os.rename(data_filename_temp, data_filename)
 
+# Download a given image directly from the URL
+def download_image(url, local_filename):
+  if not download_images:
+    return True
+
+  try:
+    urlretrieve(url, local_filename)
+    return True
+  except:
+    return False
+
+# Download a given video via youtube-dl
+def download_video(url, local_filename):
+  if not download_videos:
+    return True
+
+  try:
+    local_filename_escaped = local_filename.replace(' ', '\ ')
+    command = '%s -q --no-warnings %s --exec \'mv {} %s\' &>/dev/null' % \
+        (youtube_dl_path, url, local_filename_escaped)
+    if os.system(command) > 0:
+      return False
+    if os.path.isfile(local_filename):
+      return True
+    else:
+      return False
+  except:
+    return False
 
 # Downloads an avatar image for a tweet.
 # @return Whether data was rewritten
@@ -68,7 +96,12 @@ def download_avatar(user):
 
     # Otherwise download it
     else:
-      urlretrieve(avatar_url, local_filename)
+      try:
+        urlretrieve(avatar_url, local_filename)
+      except:
+        # Okay to quietly fail, this is just an avatar
+        # (And, apparently, some avatars return 404.)
+        return False
 
   user['profile_image_url_https_orig'] = user['profile_image_url_https']
   user['profile_image_url_https'] = local_filename
@@ -80,7 +113,7 @@ def download_avatar(user):
 
 # Introduce yourself
 
-print("Twitter export image fill 1.04")
+print("Twitter export image fill 1.05")
 print("by Marcin Wichary (aresluna.org) and others")
 print("use --help to see options")
 print("")
@@ -88,21 +121,44 @@ print("")
 # Process arguments
 
 parser = argparse.ArgumentParser(description = 'Downloads all the images to your Twitter archive .')
-parser.add_argument('--include-retweets', action='store_true',
-    help = 'download images from retweets in addition to your own tweets')
 parser.add_argument('--include-videos', dest='PATH_TO_YOUTUBE_DL',
-    help = 'output a list of videos to download using youtube_dl (experimental!)')
+    help = 'use youtube_dl to download videos (and animated GIFs) in addition to images')
 parser.add_argument('--skip-avatars', action='store_true',
     help = 'do not download avatar images (faster)')
-parser.add_argument('--force-download', action='store_true',
-    help = 'force downloading images that were already downloaded')
+parser.add_argument('--skip-retweets', action='store_true',
+    help = 'do not download images or videos from retweets (faster)')
+parser.add_argument('--skip-images', action='store_true',
+    help = 'do not download images in general')
+parser.add_argument('--skip-videos', action='store_true',
+    help = 'do not download videos (and animated GIFs) in general')
 parser.add_argument('--continue-from', dest='EARLIER_ARCHIVE_PATH',
     help = 'use images downloaded into an earlier archive instead of downloading them again (useful for incremental backups)')
 parser.add_argument('--verbose', action='store_true',
     help = 'show additional debugging info')
+parser.add_argument('--force-download', action='store_true',
+    help = 'force to re-download images and videos that were already downloaded')
 args = parser.parse_args()
 
-include_videos = not not args.PATH_TO_YOUTUBE_DL
+download_images = not args.skip_images
+download_videos = False
+
+if not args.skip_videos:
+  if args.PATH_TO_YOUTUBE_DL:
+    if not os.path.isfile(args.PATH_TO_YOUTUBE_DL):
+      print("Could not find the youtube-dl file.")
+      print("Make sure you're pointing at the right file.")
+      print("A typical path would be: /usr/local/bin/youtube-dl")
+      sys.exit(1)
+
+    download_videos = True
+    youtube_dl_path = args.PATH_TO_YOUTUBE_DL
+  else:
+    if os.path.isfile('/usr/local/bin/youtube-dl'):
+      download_videos = True
+      youtube_dl_path = '/usr/local/bin/youtube-dl'
+      if args.verbose:
+        print("(Found youtube-dl automatically.)")
+        print("")
 
 # Check whether the earlier archive actually exists
 # (This is important because failure would mean quietly downloading all the files again)
@@ -114,14 +170,12 @@ if args.EARLIER_ARCHIVE_PATH:
   if not os.path.isfile(earlier_archive_path + '/data/js/tweet_index.js'):
     print("Could not find the earlier archive!")
     print("Make sure you're pointing at the directory that contains the index.html file.")
-    sys.exit()
+    sys.exit(1)
 
 # Prepare variables etc.
 
 image_count_global = 0
 video_count_global = 0
-if include_videos:
-  video_shell_file_contents = []
 if not os.path.isdir("img/avatars"):
   os.mkdir("img/avatars")
 
@@ -138,7 +192,7 @@ except:
   print("Please run this script from your tweet archive directory")
   print("(the one with index.html file).")
   print("")
-  sys.exit()
+  sys.exit(1)
 
 print("To process: %i months worth of tweets..." % (len(index)))
 print("(You can cancel any time. Next time you run, the script should resume at the last point.)")
@@ -172,14 +226,14 @@ for date in index:
       data = json.loads(data_str)
 
     tweet_length = len(data)
-    image_count = 0
-    tweet_count = 0
+    month_tweet_count = 0
+    month_media_count = 0
     directory_name = 'data/js/tweets/%s_%s_media' % (year_str, month_str)
 
     print("%s/%s: %i tweets to process..." % (year_str, month_str, tweet_length))
 
     for tweet in data:
-      tweet_count = tweet_count + 1
+      month_tweet_count = month_tweet_count + 1
       retweeted = 'retweeted_status' in tweet.keys()
 
       # Before downloading any images, download an avatar for tweet's author
@@ -188,7 +242,7 @@ for date in index:
         data_changed = download_avatar(tweet['user'])
 
         data_changed_retweet = False
-        if args.include_retweets and retweeted:
+        if not args.skip_retweets and retweeted:
           data_changed_retweet = download_avatar(tweet['retweeted_status']['user'])
 
         # Re-save the JSON file if we grabbed any avatars
@@ -196,11 +250,11 @@ for date in index:
           resave_data(data, data_filename, first_data_line, year_str, month_str)
 
       # Don't continue with saving images if a retweet (unless forced to)
-      if (not args.include_retweets) and retweeted:
+      if (args.skip_retweets) and retweeted:
         continue
 
       if tweet['entities']['media']:
-        tweet_image_count = 1
+        tweet_media_count = 1
 
         # Rewrite tweet date to be used in the filename prefix
         # (only first 19 characters + replace colons with dots)
@@ -219,20 +273,37 @@ for date in index:
           if args.force_download and 'media_url_orig' in media.keys():
             media['media_url'] = media['media_url_orig']
 
-          url = media['media_url_https']
-          extension = os.path.splitext(url)[1]
-
           # Only make the directory when we're ready to write the first file;
           # this will avoid empty directories
           if not os.path.isdir(directory_name):
             os.mkdir(directory_name)
 
-          # Download the original/best image size, rather than the default one
-          better_url = url + ':orig'
-
-          local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s%s' %\
-              (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
-               tweet_image_count, extension)
+          is_video = False
+          # Video
+          if '/video/' in media['expanded_url']:
+            is_video = True
+            url = media['expanded_url']
+            local_filename = 'data/js/tweets/%s_%s_media/%s-%s-video-%s%s.mp4' %\
+                (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
+                 tweet_media_count)
+          # Animated GIF transcoded into a video
+          elif 'tweet_video_thumb' in media['media_url']:
+            is_video = True
+            id = re.match(r'(.*)tweet_video_thumb/(.*)\.', media['media_url']).group(2)
+            url = "https://video.twimg.com/tweet_video/%s.mp4" % id
+            local_filename = 'data/js/tweets/%s_%s_media/%s-%s-gif-video-%s%s.mp4' %\
+                (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
+                 tweet_media_count)
+          # Regular non-animated image
+          else:
+            is_video = False
+            url = media['media_url_https']
+            extension = os.path.splitext(url)[1]
+            # Download the original/best image size, rather than the default one
+            url = url + ':orig'
+            local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s%s' % \
+                (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
+                 tweet_media_count, extension)
 
           can_be_copied = False
           downloaded = False
@@ -243,8 +314,9 @@ for date in index:
           if args.EARLIER_ARCHIVE_PATH and os.path.isfile(earlier_archive_path + local_filename):
             can_be_copied = True
 
-          sys.stdout.write("\r  [%i/%i] %s %s..." %
-              (tweet_count, tweet_length, "Copying" if can_be_copied else "Downloading", url))
+          sys.stdout.write("\r  [%i/%i] %s %s %s..." %
+              (month_tweet_count, tweet_length, "Copying" if can_be_copied else "Downloading", \
+              "video" if is_video else "image", url.split('/')[-1]))
           sys.stdout.write("\033[K") # Clear the end of the line
           sys.stdout.flush()
 
@@ -253,64 +325,42 @@ for date in index:
           else:
             while not downloaded:
               # Actually download the file!
-              try:
-                urlretrieve(better_url, local_filename)
-              except:
+              if (is_video and download_video(url, local_filename)) or \
+                 (not is_video and download_image(url, local_filename)):
+                downloaded = True
+              else:
                 download_tries = download_tries - 1
                 if download_tries == 0:
                   print("")
-                  print("Failed to download %s after 3 tries." % better_url)
+                  print("Failed to download %s after 3 tries." % url)
                   print("Please try again later?")
                   # Output debugging info if needed
                   if args.verbose:
                     print("Debug info: Tweet ID = %s " % tweet['id'])
-                  sys.exit()
+                  sys.exit(2)
                 time.sleep(5) # Wait 5 seconds before retrying
-              else:
-                downloaded = True
 
           # Change the URL so that the archive's index.html will now point to the
           # just-download local file...
-          media['media_url_orig'] = media['media_url']
-          media['media_url'] = local_filename
+          if (not is_video and download_images) or (is_video and download_videos):
+            media['media_url_orig'] = media['media_url']
+            media['media_url'] = local_filename
 
-          # Re-save the original JSON file every time, so that the script can continue
-          # from this point
-          resave_data(data, data_filename, first_data_line, year_str, month_str)
+            # Re-save the original JSON file every time, so that the script can continue
+            # from this point
+            resave_data(data, data_filename, first_data_line, year_str, month_str)
 
-          # Test whether this media is actually a video
-          is_video = False
-          if '/video/' in media['expanded_url']:
-            is_video = True
-            video_download_url = media['expanded_url']
-          elif 'tweet_video_thumb' in media['media_url_orig']:
-            is_video = True
-            id = re.match(r'(.*)tweet_video_thumb/(.*)\.', media['media_url_orig']).group(2)
-            video_download_url = "https://video.twimg.com/tweet_video/%s.mp4" % id
-
+          tweet_media_count = tweet_media_count + 1
+          month_media_count = month_media_count + 1
           if is_video:
             video_count_global = video_count_global + 1
-
-            # If the user opted into the experimental way of saving videos...
-            if include_videos:
-              local_video_filename = 'data/js/tweets/%s_%s_media/%s-%s-video-%s%s.mp4' %\
-                  (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
-                   tweet_image_count)
-
-              # ...create a shell line to eventually be output into a shell file
-              shell_line = '%s %s --exec \'mv {} %s\'' % \
-                  (args.PATH_TO_YOUTUBE_DL, video_download_url,
-                    local_video_filename.replace(' ', '\ ')) # Don't forget to escape spaces in the filename
-              video_shell_file_contents.append(shell_line)
-
-          tweet_image_count = tweet_image_count + 1
-          image_count = image_count + 1
-          image_count_global = image_count_global + 1
+          else:
+            image_count_global = image_count_global + 1
 
         # End loop 3 (images in a tweet)
 
     # End loop 2 (tweets in a month)
-    sys.stdout.write("\r%s/%s: %i tweets processed; %i images downloaded." % (year_str, month_str, tweet_length, image_count))
+    sys.stdout.write("\r         ...%i images/videos downloaded." % month_media_count)
     sys.stdout.write("\033[K") # Clear the end of the line
     sys.stdout.flush()
     print("")
@@ -319,33 +369,21 @@ for date in index:
   except KeyboardInterrupt:
     print("")
     print("Interrupted! Come back any time.")
-    sys.exit()
+    sys.exit(3)
 
 # End loop 1 (all the months)
 print("")
 print("Done!")
-print("%i images downloaded in total." % image_count_global)
+if download_images:
+  print("%i images downloaded in total." % image_count_global)
+if download_videos:
+  print("%i videos downloaded in total." % video_count_global)
 print("")
 
 # Any videos detected? Tell the user
-if video_count_global:
-  if include_videos:
-    # Output the shell file that can be run to download files using youtube-dl
-    video_shell_filename = 'download_videos.sh'
-    with open(video_shell_filename, 'w') as f:
-      for shell_line in video_shell_file_contents:
-        f.write(shell_line)
-        f.write("\n")
-      f.write("echo \"\nDone downloading videos!\n\"\n")
-
-    # Change the permissions so it's an executable file
-    os.chmod(video_shell_filename, stat.S_IREAD + stat.S_IWRITE + stat.S_IXUSR)
-
-    print("A shell file to download %i videos using youtube_dl has been created. Try running:" % video_count_global)
-    print("./download_videos.sh")
-  else:
-    print("%i videos have NOT been downloaded." % video_count_global)
-    print("If you want, use the experimental include-videos option to download videos.")
-    print("For more info, use --help, or look at https://github.com/mwichary/twitter-export-image-fill")
+if video_count_global and not download_videos:
+  print("%i videos have NOT been downloaded." % video_count_global)
+  print("If you want, use the include-videos option to download videos.")
+  print("For more info, use --help, or look at https://github.com/mwichary/twitter-export-image-fill")
 
   print("")
