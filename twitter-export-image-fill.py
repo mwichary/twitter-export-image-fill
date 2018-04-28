@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-Twitter export image fill 1.07
+Twitter export image fill 1.10
 by Marcin Wichary (aresluna.org)
 
 Site: https://github.com/mwichary/twitter-export-image-fill
@@ -31,7 +31,7 @@ else:
 
 
 def print_intro():
-  print("Twitter export image fill 1.07")
+  print("Twitter export image fill 1.10")
   print("by Marcin Wichary (aresluna.org) and others")
   print("use --help to see options")
   print("")

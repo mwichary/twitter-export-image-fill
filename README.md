@@ -102,6 +102,11 @@ This script is in public domain. Run free.
 
 ### Version history
 
+**1.10 (28 Apr 2018)**
+- Better downloading of retweets
+- Added an option to allow to skip broken images
+- Tons of internal code clean-up (thanks to <a href='https://github.com/keithrbennett'>@keithrbennett</a>)
+
 **1.06 (28 Apr 2018)**
 - Better communication of progress
 
