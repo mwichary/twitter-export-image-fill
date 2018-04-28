@@ -36,29 +36,29 @@ Note: You can interrupt the script at any time and run it again – it should s
 
 `--include-videos PATH_TO_YOUTUBE_DL`
 
-Download videos from tweets. You have to
-<a href='https://rg3.github.io/youtube-dl/download.html'>download/install</a>
-youtube-dl manually and then provide a path to it, e.g.
+Download videos and animated GIFs from tweets. You have to
+<a href='https://rg3.github.io/youtube-dl/download.html'>download/install
+youtube-dl</a> and then provide a path to it, e.g.
 `--include-videos /usr/local/Cellar/youtube-dl/2017.01.05/bin/youtube-dl`
-The script will try to find youtube-dl in its common path, but it might fail
+The script will try to find youtube-dl in its common path, but it might fail.
 
 Note: This includes animated GIFs, which Twitter transcodes into videos.
 
 `--skip-avatars`
 
-Do not download avatars from tweets (by default, user avatars are downloaded alongside tweet images)
+Do not download avatars from tweets (by default, user avatars are downloaded alongside tweet images).
 
 `--skip-retweets`
 
-Do not download images from retweets (done by default)
+Do not download images from retweets (done by default).
 
 `--skip-images`
 
-Do not download any images (just videos)
+Do not download any images (just videos).
 
 `--skip-videos`
 
-Do not download any videos (just images)
+Do not download any videos (just images).
 
 `--continue-from EARLIER_ARCHIVE_PATH`
 
@@ -75,7 +75,7 @@ Use an earlier archive to get images from if possible, instead of downloading (u
 
 ### FAQ
 
-**Does this work on Windows or lInux?**
+**Does this work on Windows or Linux?**
 
 I wrote/tested it on Mac OS only, but I’ve heard of people having success
 running it on Windows. Others reported it worked for them properly on
