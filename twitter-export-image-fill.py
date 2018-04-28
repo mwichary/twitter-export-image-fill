@@ -243,7 +243,6 @@ def determine_image_or_video(media, year_str, month_str, date, tweet, retweeted,
 def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
   image_count_global = 0
   video_count_global = 0
-  media_count_global = 0
 
   # Loop 1: Go through all the months
   # ---------------------------------
@@ -336,7 +335,8 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
 
             if not trial_run:
               sys.stdout.write("\r[%0.1f%%] %s/%s: %s %s %s..." %
-                  (media_count_global / media_precount_global * 100, year_str, month_str, \
+                  ((image_count_global + video_count_global) / media_precount_global * 100, \
+                  year_str, month_str, \
                   "Copying" if can_be_copied else "Downloading", \
                   "video" if is_video else "image", url.split('/')[-1]))
               sys.stdout.write("\033[K") # Clear the end of the line
@@ -364,7 +364,6 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
               video_count_global += 1
             else:
               image_count_global += 1
-            media_count_global += 1
 
           # End loop 3 (images in a tweet)
 
@@ -382,7 +381,7 @@ def process_tweets(tweets_by_month, trial_run, media_precount_global=None):
       sys.exit(-3)
 
   # End loop 1 (all the months)
-  return image_count_global, video_count_global, media_count_global
+  return image_count_global, video_count_global
 
 
 # Main entry point
@@ -414,8 +413,9 @@ month_count = len(tweets_by_month)
 # Scan the file to know how much work needs to be done
 
 print("Scanning...")
-image_precount_global, video_precount_global, media_precount_global = \
+image_precount_global, video_precount_global = \
     process_tweets(tweets_by_month, True)
+media_precount_global = image_precount_global + video_precount_global
 
 print("")
 if not args.skip_images and not args.skip_videos:
@@ -432,7 +432,7 @@ print("")
 
 # Actually download everything
 
-image_count_global, video_count_global, media_count_global = \
+image_count_global, video_count_global = \
     process_tweets(tweets_by_month, False, media_precount_global)
 
 # Communicate success
