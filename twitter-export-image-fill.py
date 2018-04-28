@@ -175,6 +175,36 @@ def download_avatar(user):
   return True
 
 
+def determine_image_or_video(media, year_str, month_str, date, tweet, retweeted, tweet_media_count):
+  # Video
+  if '/video/' in media['expanded_url']:
+    is_video = True
+    url = media['expanded_url']
+    local_filename = 'data/js/tweets/%s_%s_media/%s-%s-video-%s%s.mp4' %\
+        (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
+         tweet_media_count)
+  # Animated GIF transcoded into a video
+  elif 'tweet_video_thumb' in media['media_url']:
+    is_video = True
+    id = re.match(r'(.*)tweet_video_thumb/(.*)\.', media['media_url']).group(2)
+    url = "https://video.twimg.com/tweet_video/%s.mp4" % id
+    local_filename = 'data/js/tweets/%s_%s_media/%s-%s-gif-video-%s%s.mp4' %\
+        (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
+         tweet_media_count)
+  # Regular non-animated image
+  else:
+    is_video = False
+    url = media['media_url_https']
+    extension = os.path.splitext(url)[1]
+    # Download the original/best image size, rather than the default one
+    url = url + ':orig'
+    local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s%s' % \
+        (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
+         tweet_media_count, extension)
+
+  return is_video, url, local_filename
+
+
 def process_tweets(trial_run, media_precount_global=None):
   image_count_global = 0
   video_count_global = 0
@@ -258,32 +288,8 @@ def process_tweets(trial_run, media_precount_global=None):
             if not trial_run and not os.path.isdir(directory_name):
               os.mkdir(directory_name)
 
-            is_video = False
-            # Video
-            if '/video/' in media['expanded_url']:
-              is_video = True
-              url = media['expanded_url']
-              local_filename = 'data/js/tweets/%s_%s_media/%s-%s-video-%s%s.mp4' %\
-                  (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
-                   tweet_media_count)
-            # Animated GIF transcoded into a video
-            elif 'tweet_video_thumb' in media['media_url']:
-              is_video = True
-              id = re.match(r'(.*)tweet_video_thumb/(.*)\.', media['media_url']).group(2)
-              url = "https://video.twimg.com/tweet_video/%s.mp4" % id
-              local_filename = 'data/js/tweets/%s_%s_media/%s-%s-gif-video-%s%s.mp4' %\
-                  (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
-                   tweet_media_count)
-            # Regular non-animated image
-            else:
-              is_video = False
-              url = media['media_url_https']
-              extension = os.path.splitext(url)[1]
-              # Download the original/best image size, rather than the default one
-              url = url + ':orig'
-              local_filename = 'data/js/tweets/%s_%s_media/%s-%s-%s%s%s' % \
-                  (year_str, month_str, date, tweet['id'], 'rt-' if retweeted else '',
-                   tweet_media_count, extension)
+            is_video, url, local_filename = \
+                determine_image_or_video(media, year_str, month_str, date, tweet, retweeted, tweet_media_count)
 
             can_be_copied = False
             downloaded = False
