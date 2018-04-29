@@ -468,7 +468,7 @@ if download_videos:
   print("%i videos downloaded in total." % total_video_count)
 print("")
 
-if len(failed_files):
+if args.continue_after_failure and len(failed_files):
   print("%i files have **NOT** been downloaded. Here are the URLs:" % len(failed_files))
   for line in failed_files:
     print("- https://twitter.com/user/status/%s: %s" % line)
